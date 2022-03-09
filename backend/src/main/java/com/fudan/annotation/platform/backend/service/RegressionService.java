@@ -5,6 +5,7 @@ import com.fudan.annotation.platform.backend.entity.RegressionDetail;
 import com.fudan.annotation.platform.backend.entity.Regression;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface RegressionService {
@@ -77,4 +78,6 @@ public interface RegressionService {
     CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath, String newPath, String revisionFlag);
 
     String runTest(String regressionUuid, String userToken,String revisionFlag);
+
+    String readRuntimeResult(String filaPath) throws IOException;
 }

@@ -1,5 +1,7 @@
 package com.fudan.annotation.platform.backend.service.impl;
 
+import com.fudan.annotation.platform.backend.config.Configs;
+import com.fudan.annotation.platform.backend.core.Executor;
 import com.fudan.annotation.platform.backend.core.Migrator;
 import com.fudan.annotation.platform.backend.core.Runner;
 import com.fudan.annotation.platform.backend.core.SourceCodeManager;
@@ -8,11 +10,13 @@ import com.fudan.annotation.platform.backend.dao.RegressionMapper;
 import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -118,8 +122,7 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath,
-                                    String newPath, String revisionFlag) {
+    public CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath, String newPath, String revisionFlag) {
         CodeDetails codeDetails = new CodeDetails();
         codeDetails.setRegressionUuid(regressionUuid);
         String oldCode = "";
@@ -174,24 +177,13 @@ public class RegressionServiceImpl implements RegressionService {
     @Override
     public String runTest(String regressionUuid, String userToken, String revisionFlag) {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
-        // rfc revision
-        Revision bfc = new Revision();
-        bfc.setRevisionName("bfc");
-        bfc.setLocalCodeDir(sourceCodeManager.getRevisionDir(regressionUuid, userToken, "bfc"));
-        bfc.setCommitID(regression.getBfc());
-        List<ChangedFile> bfcFiles = migrator.getChangedFiles(bfc.getLocalCodeDir(), regression.getBuggy(),
-                regression.getBfc());
-        bfc.setChangedFiles(bfcFiles);
-
-        // need to migration revision
-        File revisionFile = sourceCodeManager.getRevisionDir(regressionUuid, userToken, revisionFlag);
-        Revision testMigrateRevision = new Revision();
-        testMigrateRevision.setRevisionName(revisionFlag);
-        testMigrateRevision.setLocalCodeDir(revisionFile);
-
-
-        Runner revisionRunner = new Runner(revisionFile, regression.getTestcase());
-        return revisionRunner.getRunCode();
+        String testCase = regression.getTestcase().split(";")[0];
+        File codeDir = sourceCodeManager.getCodeDir(regressionUuid, userToken, revisionFlag);
+        new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + Configs.RUNTIME_LOG_FILE_NAME);
+        return codeDir.getAbsolutePath() + File.separator + Configs.RUNTIME_LOG_FILE_NAME;
+    }
+    public String readRuntimeResult(String filaPath) throws IOException {
+        return FileUtils.readFileToString(new File(filaPath),"UTF-8");
     }
 
     @Autowired

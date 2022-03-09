@@ -8,6 +8,9 @@ import com.fudan.annotation.platform.backend.vo.ResponseBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -127,14 +130,25 @@ public class RegressionController {
 
     @GetMapping(value = "/console")
     public ResponseBean<String> getConsoleResult(
+            @RequestParam(name = "path") String path) {
+        try {
+            String revisionRunResult = regressionService.readRuntimeResult(URLDecoder.decode(path,"UTF-8"));
+            return new ResponseBean<>(200, "get result success", revisionRunResult);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "get result failed :" + e.getMessage(), null);
+        }
+    }
+    @GetMapping(value = "/test")
+    public ResponseBean<String> test(
             @RequestParam(name = "regression_uuid") String regressionUuid,
             @RequestParam String userToken,
             @RequestParam String revisionFlag) {
         try {
-            String revisionRunResult = regressionService.runTest(regressionUuid, userToken, revisionFlag);
-            return new ResponseBean<>(200, "get result success", revisionRunResult);
+            String logPath = regressionService.runTest(regressionUuid, userToken, revisionFlag);
+            logPath = URLEncoder.encode(logPath,"UTF-8");
+            return new ResponseBean<>(200, "test success", logPath);
         } catch (Exception e) {
-            return new ResponseBean<>(401, "get result failed :" + e.getMessage(), null);
+            return new ResponseBean<>(401, "test failed :" + e.getMessage(), null);
         }
     }
 

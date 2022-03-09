@@ -20,11 +20,15 @@ public class SourceCodeManager {
     @Value("")
     private String workSpace;
 
-    private String metaProjectsDirPath = "../../"+"meta_projects";
-    private String cacheProjectsDirPath = "../../"+"transfer_cache";
+    private String metaProjectsDirPath = "E:\\code_cache\\" + "meta_projects";
+    private String cacheProjectsDirPath = "E:\\code_cache\\" + "transfer_cache";
 
     public File getMetaProjectDir(String projectUuid) {
         return new File(metaProjectsDirPath + File.separator + projectUuid);
+    }
+
+    public File getCodeDir(String regressionUuid, String userToken, String revisionFlag) {
+        return new File(cacheProjectsDirPath + File.separator + userToken + File.separator + regressionUuid + File.separator + revisionFlag);
     }
 
     public File checkout(Revision revision, File projectFile, String regressionUuid, String userToken) {
@@ -55,11 +59,11 @@ public class SourceCodeManager {
     }
 
     public File getCacheProjectDir(String userToken, String regressionUuid, String revisionFlag, String filePath) {
-            return new File(cacheProjectsDirPath + File.separator + userToken + File.separator +
+        return new File(cacheProjectsDirPath + File.separator + userToken + File.separator +
                 regressionUuid + File.separator + revisionFlag + File.separator + filePath);
     }
 
-    public File getRevisionDir(String regressionUuid, String userToken,String revisionFlag){
+    public File getRevisionDir(String regressionUuid, String userToken, String revisionFlag) {
         return new File(cacheProjectsDirPath + File.separator + userToken + File.separator +
                 regressionUuid + File.separator + revisionFlag);
     }
@@ -69,7 +73,7 @@ public class SourceCodeManager {
         String str = "";
         try {
             str = FileUtils.readFileToString(revisionFile);
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println(str);
