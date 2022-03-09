@@ -49,17 +49,25 @@ public class Migrator {
         return changedFiles;
     }
 
-    public void migrateTestAndDependency(Revision bfc, Revision testMigrateRevision, String testCase) {
-        List<DiffEntry> diffEntries = GitUtil.getDiffEntriesBetweenCommits(bfc.getLocalCodeDir(), bfc.getCommitID(), bfc.getCommitID() + "~1");
-
-        diffEntries.forEach(diffEntry -> {
-            addChangedFileToBfc(diffEntry, bfc);
+    public void migrateTestAndDependency(Revision rfc, List<Revision> needToTestMigrateRevisionList, String testCase) {
+        equipRfcWithChangeInfo(rfc);
+        reducer.reduceTestCases(rfc, testCase.split(";")[0]);
+        needToTestMigrateRevisionList.forEach(revision -> {
+            migrateTestFromTo_0(rfc, revision);
         });
-        reducer.reduceTestCases(bfc, testCase);
-        migrateTestFromTo_0(bfc, testMigrateRevision);
     }
 
-    public void migrateTestFromTo_0(Revision from, Revision to) {
+    public void equipRfcWithChangeInfo(Revision rfc) {
+        // method can just use to rfc revision
+        assert (rfc.getRevisionName().equals("bfc"));
+        List<DiffEntry> diffEntries = GitUtil.getDiffEntriesBetweenCommits(rfc.getLocalCodeDir(), rfc.getCommitID(), rfc.getCommitID()+"~1");
+        assert (diffEntries != null);
+        diffEntries.forEach(diffEntry -> {
+            addChangedFileToRfc(diffEntry,rfc);
+        });
+    }
+
+    private void migrateTestFromTo_0(Revision from, Revision to) {
         File bfcDir = from.getLocalCodeDir();
         File tDir = to.getLocalCodeDir();
 
@@ -88,7 +96,7 @@ public class Migrator {
         }
     }
 
-    private void addChangedFileToBfc(DiffEntry entry, Revision rfc) {
+    private void addChangedFileToRfc(DiffEntry entry, Revision rfc) {
         ChangedFile file = null;
         String path = entry.getNewPath();
         if (path.contains("test") && path.endsWith(".java")) {

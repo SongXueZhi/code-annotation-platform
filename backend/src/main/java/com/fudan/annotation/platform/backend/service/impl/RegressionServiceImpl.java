@@ -2,18 +2,18 @@ package com.fudan.annotation.platform.backend.service.impl;
 
 import com.fudan.annotation.platform.backend.core.Migrator;
 import com.fudan.annotation.platform.backend.core.Runner;
+import com.fudan.annotation.platform.backend.core.SourceCodeManager;
 import com.fudan.annotation.platform.backend.dao.ProjectMapper;
 import com.fudan.annotation.platform.backend.dao.RegressionMapper;
 import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
-import com.fudan.annotation.platform.backend.core.SourceCodeManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +27,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class RegressionServiceImpl implements RegressionService {
+    private static String NULL = "/dev/null";
     private RegressionMapper regressionMapper;
     @Autowired
     private ProjectMapper projectMapper;
@@ -34,8 +35,6 @@ public class RegressionServiceImpl implements RegressionService {
     private SourceCodeManager sourceCodeManager;
     @Autowired
     private Migrator migrator;
-
-    private static String NULL = "/dev/null";
 
     @Override
     public List<Regression> getRegressions(String regressionUuid, Integer regressionStatus) {
@@ -113,36 +112,14 @@ public class RegressionServiceImpl implements RegressionService {
     public void checkoutByUser(String regressionUuid, String userToken) {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
 
-        RegressionRevision regressionRevision = new RegressionRevision();
-        regressionRevision.setRegressionUuid(regression.getRegressionUuid());
-
-        Revision bic = new Revision();
-        bic.setRevisionName("bic");
-        bic.setCommitID(regression.getBic());
-        regressionRevision.setBic(bic);
-
-        Revision bfc = new Revision();
-        bfc.setRevisionName("bfc");
-        bfc.setCommitID(regression.getBfc());
-        regressionRevision.setBfc(bfc);
-
-        Revision buggy = new Revision();
-        buggy.setRevisionName("buggy");
-        buggy.setCommitID(regression.getBuggy());
-        regressionRevision.setBuggy(buggy);
-
-        Revision work = new Revision();
-        work.setRevisionName("work");
-        work.setCommitID(regression.getWork());
-        regressionRevision.setWork(work);
-
         //get projectFile
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
-        checkout(regressionRevision, projectFile, userToken);
+        checkoutBugCode(regressionUuid, projectFile, userToken);
     }
 
     @Override
-    public CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath, String newPath, String revisionFlag) {
+    public CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath,
+                                    String newPath, String revisionFlag) {
         CodeDetails codeDetails = new CodeDetails();
         codeDetails.setRegressionUuid(regressionUuid);
         String oldCode = "";
@@ -165,7 +142,7 @@ public class RegressionServiceImpl implements RegressionService {
                 oldCode = sourceCodeManager.getRevisionCode(workFile);
             }
             if (!newPath.equals(NULL)) {
-                File bicFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "bic", newPath);;
+                File bicFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "bic", newPath);
                 newCode = sourceCodeManager.getRevisionCode(bicFile);
             }
         }
@@ -175,39 +152,35 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Async
-    public void checkout(RegressionRevision regressionRevision, File projectFile, String userToken) {
-        String regressionUuid = regressionRevision.getRegressionUuid();
+    public void checkoutBugCode(String regressionUuid, File projectFile, String userToken) {
+        Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
 
-        //checkout: bfc version
-        Revision bfc = regressionRevision.getBfc();
-        File bfcDir = sourceCodeManager.checkout(bfc, projectFile, regressionUuid, userToken);
-        bfc.setLocalCodeDir(bfcDir);
+        List<Revision> targetCodeVersions = new ArrayList<>(4);
+        Revision rfc = new Revision("bfc", regression.getBfc());
+        targetCodeVersions.add(rfc);
 
-        //checkout: buggy version
-        Revision buggy = regressionRevision.getBuggy();
-        File buggyDir = sourceCodeManager.checkout(buggy, projectFile, regressionUuid, userToken);
-        bfc.setLocalCodeDir(buggyDir);
+        targetCodeVersions.add(new Revision("buggy", regression.getBuggy()));
+        targetCodeVersions.add(new Revision("bic", regression.getBic()));
+        targetCodeVersions.add(new Revision("work", regression.getWork()));
 
-        //checkout: bic version
-        Revision bic = regressionRevision.getBic();
-        File bicDir = sourceCodeManager.checkout(bic, projectFile, regressionUuid, userToken);
-        bfc.setLocalCodeDir(bicDir);
+        targetCodeVersions.forEach(revision -> {
+            revision.setLocalCodeDir(sourceCodeManager.checkout(revision, projectFile, regressionUuid, userToken));
+        });
 
-        //checkout: work version
-        Revision work = regressionRevision.getWork();
-        File workDir = sourceCodeManager.checkout(work, projectFile, regressionUuid, userToken);
-        bfc.setLocalCodeDir(workDir);
+        targetCodeVersions.remove(0);
+        migrator.migrateTestAndDependency(rfc, targetCodeVersions, regression.getTestcase());
     }
 
     @Override
-    public String runTest(String regressionUuid, String userToken,String revisionFlag){
+    public String runTest(String regressionUuid, String userToken, String revisionFlag) {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         // rfc revision
         Revision bfc = new Revision();
         bfc.setRevisionName("bfc");
         bfc.setLocalCodeDir(sourceCodeManager.getRevisionDir(regressionUuid, userToken, "bfc"));
         bfc.setCommitID(regression.getBfc());
-        List<ChangedFile> bfcFiles = migrator.getChangedFiles(bfc.getLocalCodeDir(), regression.getBuggy(), regression.getBfc());
+        List<ChangedFile> bfcFiles = migrator.getChangedFiles(bfc.getLocalCodeDir(), regression.getBuggy(),
+                regression.getBfc());
         bfc.setChangedFiles(bfcFiles);
 
         // need to migration revision
@@ -216,8 +189,6 @@ public class RegressionServiceImpl implements RegressionService {
         testMigrateRevision.setRevisionName(revisionFlag);
         testMigrateRevision.setLocalCodeDir(revisionFile);
 
-        //test migration
-        migrator.migrateTestAndDependency(bfc, testMigrateRevision, regression.getTestcase());
 
         Runner revisionRunner = new Runner(revisionFile, regression.getTestcase());
         return revisionRunner.getRunCode();

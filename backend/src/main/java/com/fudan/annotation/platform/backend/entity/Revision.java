@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,10 +21,14 @@ import java.util.List;
 public class Revision {
     /**
      * 1个regression包含四个Revision（bic\bfc\buggy\work）
-     * */
-
-    File localCodeDir = null;
+     */
+    private File localCodeDir;
     private String revisionName;
     private String commitID;
-    private List<ChangedFile> changedFiles = new LinkedList<>();
+    List<ChangedFile> changedFiles = new ArrayList<>();
+
+    public Revision(String revisionName, String commitID) {
+        this.revisionName = revisionName;
+        this.commitID = commitID;
+    }
 }

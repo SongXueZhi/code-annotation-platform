@@ -17,11 +17,11 @@ import java.io.*;
 @Component
 public class SourceCodeManager {
 
-    @Value("${local.workSpace}")
+    @Value("")
     private String workSpace;
 
-    private String metaProjectsDirPath = "E:\\reg\\regminerTool\\test-transfer-space" + File.separator + "meta_projects";
-    private String cacheProjectsDirPath = "E:\\reg\\regminerTool\\test-transfer-space" + File.separator + "transfer_cache";
+    private String metaProjectsDirPath = "../../"+"meta_projects";
+    private String cacheProjectsDirPath = "../../"+"transfer_cache";
 
     public File getMetaProjectDir(String projectUuid) {
         return new File(metaProjectsDirPath + File.separator + projectUuid);
@@ -34,7 +34,6 @@ public class SourceCodeManager {
             projectCacheDir.delete();
         }
         projectCacheDir.mkdirs();
-        String projectUuid = "491245a5-9e6f-4e4a-bf94-59cfb6f352a1" ;
 
         File revisionDir = new File(projectCacheDir, revision.getRevisionName());
         try {
@@ -47,7 +46,7 @@ public class SourceCodeManager {
             System.out.println(e.getMessage());
             return null;
         }
-        new File(projectCacheDir, projectUuid).renameTo(revisionDir);
+        new File(projectCacheDir, projectFile.getName()).renameTo(revisionDir);
         //git checkout
         if (GitUtil.checkout(revision.getCommitID(), revisionDir)) {
             return revisionDir;
