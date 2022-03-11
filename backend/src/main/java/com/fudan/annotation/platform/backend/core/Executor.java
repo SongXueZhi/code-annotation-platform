@@ -22,6 +22,10 @@ public class Executor {
     public final static String OS_UNIX = "unix";
     protected static String OS;
 
+    static {
+        OS = System.getProperty("os.name").toLowerCase();
+    }
+
     ProcessBuilder pb = new ProcessBuilder();
 
     public Executor setDirectory(File file) {
@@ -38,24 +42,22 @@ public class Executor {
         }
     }
 
-    public String exec(String cmd, int timeout) throws TimeoutException{
+    public String exec(String cmd, int timeout) throws TimeoutException {
         StringBuilder builder = new StringBuilder();
         Process process = null;
         InputStreamReader inputStr = null;
         BufferedReader bufferReader = null;
         pb.redirectErrorStream(true);
         try {
-            //os: windows
-            pb.command("cmd.exe", "/c", cmd);
-//            if (OS.contains(OS_WINDOWS)) {
-//                pb.command("cmd.exe", "/c", cmd);
-//            } else {
-//                pb.command("bash", "-c", cmd);
-//            }
+            if (OS.contains(OS_WINDOWS)) {
+                pb.command("cmd.exe", "/c", cmd);
+            } else {
+                pb.command("bash", "-c", cmd);
+            }
             process = pb.start();
             if (timeout > 0) {
                 boolean completed = process.waitFor(timeout, TimeUnit.MINUTES);
-                if (!completed){
+                if (!completed) {
                     throw new TimeoutException();
                 }
             }

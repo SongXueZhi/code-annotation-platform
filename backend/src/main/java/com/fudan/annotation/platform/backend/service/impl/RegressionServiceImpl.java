@@ -3,7 +3,6 @@ package com.fudan.annotation.platform.backend.service.impl;
 import com.fudan.annotation.platform.backend.config.Configs;
 import com.fudan.annotation.platform.backend.core.Executor;
 import com.fudan.annotation.platform.backend.core.Migrator;
-import com.fudan.annotation.platform.backend.core.Runner;
 import com.fudan.annotation.platform.backend.core.SourceCodeManager;
 import com.fudan.annotation.platform.backend.dao.ProjectMapper;
 import com.fudan.annotation.platform.backend.dao.RegressionMapper;
@@ -122,7 +121,8 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath, String newPath, String revisionFlag) {
+    public CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath,
+                                    String newPath, String revisionFlag) {
         CodeDetails codeDetails = new CodeDetails();
         codeDetails.setRegressionUuid(regressionUuid);
         String oldCode = "";
@@ -179,11 +179,27 @@ public class RegressionServiceImpl implements RegressionService {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         String testCase = regression.getTestcase().split(";")[0];
         File codeDir = sourceCodeManager.getCodeDir(regressionUuid, userToken, revisionFlag);
-        new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + Configs.RUNTIME_LOG_FILE_NAME);
+
+        String logPath =  codeDir.getAbsolutePath() + File.separator + Configs.RUNTIME_LOG_FILE_NAME;
+        File logFile = new File(logPath);
+        logFile.deleteOnExit();
+
+        new Thread(() -> {
+            new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + Configs.RUNTIME_LOG_FILE_NAME);
+            synchronized (logPath){
+                try {
+                    FileUtils.writeStringToFile(logFile,"REGMINER-TEST-END","UTF-8",true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
         return codeDir.getAbsolutePath() + File.separator + Configs.RUNTIME_LOG_FILE_NAME;
     }
+
     public String readRuntimeResult(String filaPath) throws IOException {
-        return FileUtils.readFileToString(new File(filaPath),"UTF-8");
+        return FileUtils.readFileToString(new File(filaPath), "UTF-8");
     }
 
     @Autowired
