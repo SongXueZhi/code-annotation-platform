@@ -23,6 +23,11 @@ public class RegressionDetail {
     private String bic;
     private String bfc;
     private String testCaseName;
+    private String testFilePath;
+    private String descriptionTxt;
+    private String bicURL;
+    private String bfcURL;
+
 
     private List<ChangedFile> bfcChangedFiles;
     private List<ChangedFile> bicChangedFiles;

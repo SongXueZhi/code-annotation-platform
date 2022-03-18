@@ -27,5 +27,6 @@ public class Regression {
     private String bic;
     private String work;
     private String testcase;
+    private String descriptionTxt;
 
 }

@@ -68,7 +68,6 @@ public class Reducer {
             for (int i = 0; i < len; i++) {
                 importDeclarations[i] = imports.get(i);
             }
-
             for (ImportDeclaration importDeclaration : importDeclarations) {
                 String importName = importDeclaration.getName().getFullyQualifiedName();
                 if (importName.lastIndexOf(".") > -1) {
@@ -85,7 +84,9 @@ public class Reducer {
                     importDeclaration.delete();
                 }
             }
-            FileUtils.forceDeleteOnExit(file);
+            if (file.exists()){
+                file.delete();
+            }
             FileUtils.writeStringToFile(file, unit.toString());
         } catch (IOException e) {
             e.printStackTrace();

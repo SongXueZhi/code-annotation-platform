@@ -91,9 +91,10 @@ public class RegressionController {
 
     @GetMapping(value = "/detail")
     public ResponseBean<RegressionDetail> getChangedFiles(
-            @RequestParam(name = "regression_uuid") String regressionUuid) {
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam String userToken) {
         try {
-            RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid);
+            RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid,userToken);
             return new ResponseBean<>(200, "get regression info success", changedFiles);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);

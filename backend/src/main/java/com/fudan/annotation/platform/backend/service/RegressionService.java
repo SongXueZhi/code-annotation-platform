@@ -55,7 +55,7 @@ public interface RegressionService {
      *
      * @param regressionUuid regressionUuid
      */
-    RegressionDetail getChangedFiles(String regressionUuid);
+    RegressionDetail getChangedFiles(String regressionUuid,String userToken);
 
     /**
      * description checkout

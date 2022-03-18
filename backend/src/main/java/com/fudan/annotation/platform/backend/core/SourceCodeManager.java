@@ -3,10 +3,12 @@ package com.fudan.annotation.platform.backend.core;
 import com.fudan.annotation.platform.backend.entity.Revision;
 import com.fudan.annotation.platform.backend.util.GitUtil;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.tools.ant.DirectoryScanner;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * description:
@@ -17,10 +19,10 @@ import java.io.*;
 @Component
 public class SourceCodeManager {
 
-    private String workSpace;
+    private final static String workSpace = "/Users/sxz/codeplat";
 
-    public static  String metaProjectsDirPath = "/Users/sxz/codeplat/" + "meta_projects";
-    public static  String cacheProjectsDirPath = "/Users/sxz/codeplat/" + "transfer_cache";
+    public static String metaProjectsDirPath = workSpace + File.separator + "meta_projects";
+    public static String cacheProjectsDirPath = workSpace + File.separator + "transfer_cache";
 
     public File getMetaProjectDir(String projectUuid) {
         return new File(metaProjectsDirPath + File.separator + projectUuid);
@@ -32,7 +34,8 @@ public class SourceCodeManager {
 
     public File checkout(Revision revision, File projectFile, String regressionUuid, String userToken) {
         //copy source code from meta project dir
-        File projectCacheDir = new File(cacheProjectsDirPath + File.separator + userToken + File.separator + regressionUuid);
+        File projectCacheDir =
+                new File(cacheProjectsDirPath + File.separator + userToken + File.separator + regressionUuid);
         if (projectCacheDir.exists() && !projectCacheDir.isDirectory()) {
             projectCacheDir.delete();
         }
@@ -60,6 +63,18 @@ public class SourceCodeManager {
     public File getCacheProjectDir(String userToken, String regressionUuid, String revisionFlag, String filePath) {
         return new File(cacheProjectsDirPath + File.separator + userToken + File.separator +
                 regressionUuid + File.separator + revisionFlag + File.separator + filePath);
+    }
+
+    public String getTestCasePath(String userToken, String regressionUuid, String revisionFlag, String testCase) throws FileNotFoundException {
+        File file = new File(cacheProjectsDirPath + File.separator + userToken + File.separator +
+                regressionUuid + File.separator + revisionFlag);
+        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setBasedir(file);
+        scanner.setIncludes(new String[]{"**\\" + testCase.split("#")[0].replace(".", "/") + ".java"});
+        scanner.setCaseSensitive(true);
+        scanner.scan();
+        return scanner.getIncludedFiles()[0];
+
     }
 
     public File getRevisionDir(String regressionUuid, String userToken, String revisionFlag) {

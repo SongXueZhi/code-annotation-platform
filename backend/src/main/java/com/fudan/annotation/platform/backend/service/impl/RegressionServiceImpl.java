@@ -11,10 +11,10 @@ import com.fudan.annotation.platform.backend.service.RegressionService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,9 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class RegressionServiceImpl implements RegressionService {
-    private static String NULL = "/dev/null";
+    private final static String NULL = "/dev/null";
+    private final static String GITHUB_URL = "https://github.com";
+    private final static String COMMIT = "commit";
     private RegressionMapper regressionMapper;
     @Autowired
     private ProjectMapper projectMapper;
@@ -91,7 +93,7 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public RegressionDetail getChangedFiles(String regressionUuid) {
+    public RegressionDetail getChangedFiles(String regressionUuid, String userToken) {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         //get projectFile
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
@@ -99,9 +101,42 @@ public class RegressionServiceImpl implements RegressionService {
         //get changed files: bic/bfc
         List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, regression.getBic(), regression.getWork());
-        modifyCorrelationDetect(bfcFiles, bicFiles, regression.getTestcase().split(";")[0]);
+        String testCase =  regression.getTestcase().split(";")[0];
+
+        String testCasePath = "NULL";
+        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles,testCase);
+        if (!hasTest){
+            try {
+                testCasePath =sourceCodeManager.getTestCasePath(userToken,regressionUuid,"bfc",testCase);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
         //set regression details
         RegressionDetail regressionDetail = new RegressionDetail();
+        regressionDetail.setTestFilePath(testCasePath);
+
+        if (!testCasePath.equals("NULL")){
+            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/")+1);
+            ChangedFile bfcFile = new ChangedFile();
+            bfcFile.setFilename(fileName);
+            bfcFile.setNewPath(testCasePath);
+            bfcFile.setOldPath(testCasePath);
+            bfcFile.setType(ChangedFile.Type.TEST_SUITE);
+            bfcFiles.add(bfcFile);
+
+            ChangedFile bicFile = new ChangedFile();
+            bicFile.setFilename(fileName);
+            bicFile.setNewPath(testCasePath);
+            bicFile.setOldPath(testCasePath);
+            bicFile.setType(ChangedFile.Type.TEST_SUITE);
+            bicFiles.add(bicFile);
+        }
+        regressionDetail.setBfcURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+                regression.getBfc()));
+        regressionDetail.setBicURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+                regression.getBic()));
         regressionDetail.setRegressionUuid(regressionUuid);
         regressionDetail.setProjectFullName(regression.getProjectFullName());
         regressionDetail.setBfc(regression.getBfc());
@@ -112,13 +147,16 @@ public class RegressionServiceImpl implements RegressionService {
         return regressionDetail;
     }
 
-    private void modifyCorrelationDetect(List<ChangedFile> bfcFiles, List<ChangedFile> bicFiles, String testCaseName) {
+    private boolean modifyCorrelationDetect(List<ChangedFile> bfcFiles, List<ChangedFile> bicFiles,
+                                            String testCaseName) {
+        boolean result = false;
         testCaseName = testCaseName.substring(0, testCaseName.indexOf("#")).replace(".", "/") + ".java";
         String finalTestCaseName = testCaseName;
 
-        bfcFiles.forEach(changedFile -> {
+        for (ChangedFile changedFile : bfcFiles) {
             if (changedFile.getNewPath().endsWith(finalTestCaseName)) {
                 changedFile.setType(ChangedFile.Type.TEST_SUITE);
+                result = true;
             }
             for (ChangedFile bicFile : bicFiles) {
                 if (bicFile.getMatch() == 1) {
@@ -132,8 +170,8 @@ public class RegressionServiceImpl implements RegressionService {
                 changedFile.setMatch(0);
                 bicFile.setMatch(0);
             }
-
-        });
+        }
+        return result;
     }
 
     @Override
@@ -179,7 +217,6 @@ public class RegressionServiceImpl implements RegressionService {
         return codeDetails;
     }
 
-    @Async
     public void checkoutBugCode(String regressionUuid, File projectFile, String userToken) {
 
         File bugDir =
@@ -218,7 +255,7 @@ public class RegressionServiceImpl implements RegressionService {
 
         new Thread(() -> {
             int state =
-                    new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + logFileName,1);
+                    new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + logFileName, 1);
             try {
                 String endFlag = "REGMINER-TEST-END";
                 if (state < 0) {
