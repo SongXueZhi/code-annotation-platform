@@ -26,6 +26,7 @@
                 regression_status = #{regressionStatus}
             </if>
         </trim>
+     ORDER BY  order_value
     </select>
 
     <select id="getRegression" resultMap="regression">

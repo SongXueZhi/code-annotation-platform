@@ -11,19 +11,14 @@ import java.io.File;
 public class Runner {
     protected File revDir;
     protected String testCase;
-    protected String runResult;
-    protected String runTestResult;
 
     public Runner(File revDir, String testCase) {
         this.revDir = revDir;
         this.testCase = testCase;
-        this.runResult = getRunCode();
-        this.runResult = getRunCode();
     }
 
-    public String getRunCode() {
+    public void getRunCode() {
         this.run();
-        return this.runTestResult;
     }
 
     private void run() {
@@ -31,9 +26,8 @@ public class Runner {
         String buildCommand = "mvn compile";
         String testCommand = "mvn test -Dtest=" + this.testCase + " " + "-Dmaven.test.failure.ignore=true";
         try {
-            runResult = new Executor().setDirectory(this.revDir).exec(buildCommand);
-            runTestResult = new Executor().setDirectory(this.revDir).exec(testCommand, 5);
-            System.out.println(runTestResult);
+             new Executor().setDirectory(this.revDir).exec(buildCommand,0);
+             new Executor().setDirectory(this.revDir).exec(testCommand, 5);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

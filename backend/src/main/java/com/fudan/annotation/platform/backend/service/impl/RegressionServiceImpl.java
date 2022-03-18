@@ -99,7 +99,7 @@ public class RegressionServiceImpl implements RegressionService {
         //get changed files: bic/bfc
         List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, regression.getBic(), regression.getWork());
-
+        modifyCorrelationDetect(bfcFiles, bicFiles, regression.getTestcase().split(";")[0]);
         //set regression details
         RegressionDetail regressionDetail = new RegressionDetail();
         regressionDetail.setRegressionUuid(regressionUuid);
@@ -108,7 +108,32 @@ public class RegressionServiceImpl implements RegressionService {
         regressionDetail.setBic(regression.getBic());
         regressionDetail.setBfcChangedFiles(bfcFiles);
         regressionDetail.setBicChangedFiles(bicFiles);
+        regressionDetail.setTestCaseName(regression.getTestcase().split(";")[0].split("#")[1]);
         return regressionDetail;
+    }
+
+    private void modifyCorrelationDetect(List<ChangedFile> bfcFiles, List<ChangedFile> bicFiles, String testCaseName) {
+        testCaseName = testCaseName.substring(0, testCaseName.indexOf("#")).replace(".", "/") + ".java";
+        String finalTestCaseName = testCaseName;
+
+        bfcFiles.forEach(changedFile -> {
+            if (changedFile.getNewPath().endsWith(finalTestCaseName)) {
+                changedFile.setType(ChangedFile.Type.TEST_SUITE);
+            }
+            for (ChangedFile bicFile : bicFiles) {
+                if (bicFile.getMatch() == 1) {
+                    continue;
+                }
+                if (changedFile.getNewPath().equals(bicFile.getNewPath())) {
+                    changedFile.setMatch(1);
+                    bicFile.setMatch(1);
+                    break;
+                }
+                changedFile.setMatch(0);
+                bicFile.setMatch(0);
+            }
+
+        });
     }
 
     @Override
@@ -130,18 +155,18 @@ public class RegressionServiceImpl implements RegressionService {
 
         if (revisionFlag.equals("bfc")) {
             if (!oldPath.equals(NULL)) {
-                File bfcFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "bfc", oldPath);
-                oldCode = sourceCodeManager.getRevisionCode(bfcFile);
+                File buggyFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "buggy", oldPath);
+                oldCode = sourceCodeManager.getRevisionCode(buggyFile);
             }
             if (!newPath.equals(NULL)) {
-                File buggyFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "buggy", newPath);
-                newCode = sourceCodeManager.getRevisionCode(buggyFile);
+                File bfcFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "bfc", newPath);
+                newCode = sourceCodeManager.getRevisionCode(bfcFile);
             }
         }
 
         if (revisionFlag.equals("bic")) {
             if (!oldPath.equals(NULL)) {
-                File workFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "work", newPath);
+                File workFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, "work", oldPath);
                 oldCode = sourceCodeManager.getRevisionCode(workFile);
             }
             if (!newPath.equals(NULL)) {
@@ -156,6 +181,12 @@ public class RegressionServiceImpl implements RegressionService {
 
     @Async
     public void checkoutBugCode(String regressionUuid, File projectFile, String userToken) {
+
+        File bugDir =
+                new File(SourceCodeManager.cacheProjectsDirPath + File.separator + userToken + File.separator + regressionUuid);
+        if (bugDir.exists()) {
+            return;
+        }
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
 
         List<Revision> targetCodeVersions = new ArrayList<>(4);
@@ -180,22 +211,26 @@ public class RegressionServiceImpl implements RegressionService {
         String testCase = regression.getTestcase().split(";")[0];
         File codeDir = sourceCodeManager.getCodeDir(regressionUuid, userToken, revisionFlag);
 
-        String logPath =  codeDir.getAbsolutePath() + File.separator + Configs.RUNTIME_LOG_FILE_NAME;
+        String logFileName = UUID.randomUUID() + "_" + Configs.RUNTIME_LOG_FILE_NAME;
+        String logPath = codeDir.getAbsolutePath() + File.separator + logFileName;
         File logFile = new File(logPath);
         logFile.deleteOnExit();
 
         new Thread(() -> {
-            new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + Configs.RUNTIME_LOG_FILE_NAME);
-            synchronized (logPath){
-                try {
-                    FileUtils.writeStringToFile(logFile,"REGMINER-TEST-END","UTF-8",true);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            int state =
+                    new Executor().setDirectory(codeDir).exec("mvn test -Dtest=" + testCase + " >> " + logFileName,1);
+            try {
+                String endFlag = "REGMINER-TEST-END";
+                if (state < 0) {
+                    endFlag = "TIME OUT ERROR" + "\n" + endFlag;
                 }
+                FileUtils.writeStringToFile(logFile, endFlag, "UTF-8", true);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }).start();
 
-        return codeDir.getAbsolutePath() + File.separator + Configs.RUNTIME_LOG_FILE_NAME;
+        return logPath;
     }
 
     public String readRuntimeResult(String filaPath) throws IOException {

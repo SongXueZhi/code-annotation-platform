@@ -22,6 +22,7 @@ public class RegressionDetail {
     private String projectFullName;
     private String bic;
     private String bfc;
+    private String testCaseName;
 
     private List<ChangedFile> bfcChangedFiles;
     private List<ChangedFile> bicChangedFiles;

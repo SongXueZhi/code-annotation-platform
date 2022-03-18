@@ -17,11 +17,10 @@ import java.io.*;
 @Component
 public class SourceCodeManager {
 
-    @Value("")
     private String workSpace;
 
-    private String metaProjectsDirPath = "E:\\code_cache\\" + "meta_projects";
-    private String cacheProjectsDirPath = "E:\\code_cache\\" + "transfer_cache";
+    public static  String metaProjectsDirPath = "/Users/sxz/codeplat/" + "meta_projects";
+    public static  String cacheProjectsDirPath = "/Users/sxz/codeplat/" + "transfer_cache";
 
     public File getMetaProjectDir(String projectUuid) {
         return new File(metaProjectsDirPath + File.separator + projectUuid);

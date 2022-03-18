@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * description:
@@ -33,17 +32,7 @@ public class Executor {
         return this;
     }
 
-    public String exec(String cmd) {
-        try {
-            return this.exec(cmd, 0);
-        } catch (TimeoutException e) {
-            e.printStackTrace(); // should not timeout
-            return null;
-        }
-    }
-
-    public String exec(String cmd, int timeout) throws TimeoutException {
-        StringBuilder builder = new StringBuilder();
+    public int exec(String cmd, int timeout) {
         Process process = null;
         InputStreamReader inputStr = null;
         BufferedReader bufferReader = null;
@@ -58,14 +47,8 @@ public class Executor {
             if (timeout > 0) {
                 boolean completed = process.waitFor(timeout, TimeUnit.MINUTES);
                 if (!completed) {
-                    throw new TimeoutException();
+                    return -1;
                 }
-            }
-            inputStr = new InputStreamReader(process.getInputStream());
-            bufferReader = new BufferedReader(inputStr);
-            String line;
-            while ((line = bufferReader.readLine()) != null) {
-                builder.append("\n").append(line);
             }
         } catch (IOException | InterruptedException ex) {
             ex.printStackTrace();
@@ -84,6 +67,6 @@ public class Executor {
                 e.printStackTrace();
             }
         }
-        return builder.toString();
+        return  0;
     }
 }

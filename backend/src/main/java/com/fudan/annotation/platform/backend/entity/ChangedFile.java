@@ -18,6 +18,7 @@ public class ChangedFile {
     private String newPath;
     private String oldPath;
     private Type type;
+    private int match=-1;
 
     public ChangedFile(String newPath) {
         this.newPath = newPath;
