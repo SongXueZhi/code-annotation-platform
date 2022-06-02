@@ -6,9 +6,16 @@ import com.fudan.annotation.platform.backend.entity.file.NormalFile;
 import com.fudan.annotation.platform.backend.entity.file.SourceFile;
 import com.fudan.annotation.platform.backend.entity.file.TestFile;
 import com.fudan.annotation.platform.backend.entity.file.TestRelatedFile;
+import com.fudan.annotation.platform.backend.util.RepositoryUtil;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.diff.DiffEntry;
 import com.fudan.annotation.platform.backend.util.GitUtil;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.patch.FileHeader;
+import org.eclipse.jgit.patch.HunkHeader;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -31,18 +39,21 @@ public class Migrator {
     @Autowired
     private Reducer reducer;
 
-    public List<ChangedFile> getChangedFiles(File projectFile, String newID, String oldID) {
+    public List<ChangedFile> getChangedFiles(File projectFile, String newID, String oldID) throws Exception {
         List<DiffEntry> diffEntries = GitUtil.getDiffEntriesBetweenCommits(projectFile, newID, oldID);
         List<ChangedFile> changedFiles = new ArrayList<>();
+        Repository repo = RepositoryUtil.getRepoFromLocal(projectFile);
         for (DiffEntry diffEntry : diffEntries) {
             String newPath = diffEntry.getNewPath();
             String oldPath = diffEntry.getOldPath();
             String newFile = newPath.substring(newPath.lastIndexOf("/") + 1);
+            List<Edit> editList = getEdits(diffEntry,repo);
             if (!newFile.equals("null") && !newFile.equals("CHANGES")) {
                 ChangedFile changedFile = new ChangedFile();
                 changedFile.setFilename(newFile);
                 changedFile.setOldPath(oldPath);
                 changedFile.setNewPath(newPath);
+                changedFile.setEditList(editList);
                 changedFiles.add(changedFile);
             }
         }
@@ -120,6 +131,19 @@ public class Migrator {
             file.setOldPath(entry.getOldPath());
             rfc.getChangedFiles().add(file);
         }
+    }
+
+    private List<Edit> getEdits(DiffEntry entry, Repository repo) throws Exception {
+        List<Edit> result = new LinkedList<Edit>();
+        try (DiffFormatter diffFormatter = new DiffFormatter(DisabledOutputStream.INSTANCE)) {
+            diffFormatter.setRepository(repo);
+            FileHeader fileHeader = diffFormatter.toFileHeader(entry);
+            List<? extends HunkHeader> hunkHeaders = fileHeader.getHunks();
+            for (HunkHeader hunk : hunkHeaders) {
+                result.addAll(hunk.toEditList());
+            }
+        }
+        return result;
     }
 
 }

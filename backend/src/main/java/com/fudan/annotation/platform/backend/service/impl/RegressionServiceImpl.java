@@ -93,7 +93,7 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public RegressionDetail getChangedFiles(String regressionUuid, String userToken) {
+    public RegressionDetail getChangedFiles(String regressionUuid, String userToken) throws Exception {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         //get projectFile
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());

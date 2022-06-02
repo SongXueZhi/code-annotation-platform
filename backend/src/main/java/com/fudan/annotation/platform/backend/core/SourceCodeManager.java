@@ -19,7 +19,7 @@ import java.io.IOException;
 @Component
 public class SourceCodeManager {
 
-    private final static String workSpace = "/Users/sxz/codeplat";
+    private final static String workSpace = "E:\\reg\\regminerTool\\test-transfer-space\\";
 
     public static String metaProjectsDirPath = workSpace + File.separator + "meta_projects";
     public static String cacheProjectsDirPath = workSpace + File.separator + "transfer_cache";
