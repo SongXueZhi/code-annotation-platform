@@ -42,8 +42,8 @@ public class RegressionServiceImpl implements RegressionService {
     private Migrator migrator;
 
     @Override
-    public List<Regression> getRegressions(String regressionUuid, Integer regressionStatus) {
-        return regressionMapper.selectRegression(regressionUuid, regressionStatus);
+    public List<Regression> getRegressions(String regressionUuid, Integer regressionStatus, String projectName) {
+        return regressionMapper.selectRegression(regressionUuid, regressionStatus, projectName);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public RegressionDetail getChangedFiles(String regressionUuid, String userToken) {
+    public RegressionDetail getChangedFiles(String regressionUuid, String userToken) throws Exception {
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         //get projectFile
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
@@ -270,6 +270,7 @@ public class RegressionServiceImpl implements RegressionService {
         return logPath;
     }
 
+    @Override
     public String readRuntimeResult(String filaPath) throws IOException {
         return FileUtils.readFileToString(new File(filaPath), "UTF-8");
     }

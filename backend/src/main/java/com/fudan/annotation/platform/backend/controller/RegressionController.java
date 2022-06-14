@@ -29,9 +29,10 @@ public class RegressionController {
     @GetMapping(value = "/all")
     public ResponseBean<List<Regression>> getAllRegressions(
             @RequestParam(name = "regression_uuid", required = false) String regressionUuid,
-            @RequestParam(name = "regression_status", required = false) Integer regressionStatus) {
+            @RequestParam(name = "regression_status", required = false) Integer regressionStatus,
+            @RequestParam(name = "project_name", required = false) String projectName) {
         try {
-            List<Regression> regressionList = regressionService.getRegressions(regressionUuid, regressionStatus);
+            List<Regression> regressionList = regressionService.getRegressions(regressionUuid, regressionStatus, projectName);
             return new ResponseBean<>(200, "get regression info success", regressionList);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
@@ -129,6 +130,7 @@ public class RegressionController {
         }
     }
 
+    //  获取控制台输出
     @GetMapping(value = "/console")
     public ResponseBean<String> getConsoleResult(
             @RequestParam(name = "path") String path) {
@@ -139,6 +141,8 @@ public class RegressionController {
             return new ResponseBean<>(401, "get result failed :" + e.getMessage(), null);
         }
     }
+
+    //运行测试用例
     @GetMapping(value = "/test")
     public ResponseBean<String> test(
             @RequestParam(name = "regression_uuid") String regressionUuid,

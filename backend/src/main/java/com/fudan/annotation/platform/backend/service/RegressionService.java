@@ -16,7 +16,7 @@ public interface RegressionService {
      * @param regressionUuid   regressionID
      * @param regressionStatus regression状态
      */
-    List<Regression> getRegressions(String regressionUuid, Integer regressionStatus);
+    List<Regression> getRegressions(String regressionUuid, Integer regressionStatus, String projectName);
 
     /**
      * description 插入新regression
@@ -55,7 +55,7 @@ public interface RegressionService {
      *
      * @param regressionUuid regressionUuid
      */
-    RegressionDetail getChangedFiles(String regressionUuid,String userToken);
+    RegressionDetail getChangedFiles(String regressionUuid, String userToken) throws Exception;
 
     /**
      * description checkout
@@ -77,7 +77,7 @@ public interface RegressionService {
      */
     CodeDetails getFilesCode(String regressionUuid, String userToken, String filename, String oldPath, String newPath, String revisionFlag);
 
-    String runTest(String regressionUuid, String userToken,String revisionFlag);
+    String runTest(String regressionUuid, String userToken, String revisionFlag);
 
     String readRuntimeResult(String filaPath) throws IOException;
 }

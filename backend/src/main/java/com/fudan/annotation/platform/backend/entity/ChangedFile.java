@@ -3,6 +3,9 @@ package com.fudan.annotation.platform.backend.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.eclipse.jgit.diff.Edit;
+
+import java.util.List;
 
 /**
  * description:
@@ -18,6 +21,7 @@ public class ChangedFile {
     private String newPath;
     private String oldPath;
     private Type type;
+    private List<Edit> editList;
     private int match=-1;
 
     public ChangedFile(String newPath) {
