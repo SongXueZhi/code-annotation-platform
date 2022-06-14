@@ -25,8 +25,11 @@
             <if test="regressionStatus != null">
                 regression_status = #{regressionStatus}
             </if>
+            <if test="projectName != null">
+               project_full_name like concat("%/",#{projectName},"%")
+            </if>
         </trim>
-     ORDER BY  order_value
+        ORDER BY order_value
     </select>
 
     <select id="getRegression" resultMap="regression">
