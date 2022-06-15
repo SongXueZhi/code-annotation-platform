@@ -1,6 +1,7 @@
 package com.fudan.annotation.platform.backend.service;
 
 import com.fudan.annotation.platform.backend.entity.ProgressInfo;
+import com.fudan.annotation.platform.backend.entity.SearchDetails;
 
 import java.io.IOException;
 
@@ -11,4 +12,5 @@ import java.io.IOException;
  */
 public interface ProgressService {
     ProgressInfo getProgressInfo() throws IOException;
+    SearchDetails getSearchDetails(String projectName, String bfc) throws IOException;
 }

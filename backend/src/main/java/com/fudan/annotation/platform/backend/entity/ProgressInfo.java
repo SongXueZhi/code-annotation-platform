@@ -25,6 +25,5 @@ public class ProgressInfo {
     //potential regression fixing commit information
     private String totalPRFCNum;
     private int pRFCDoneNum;
-    private String currentCommitName;
     private int regressionNum;
 }
