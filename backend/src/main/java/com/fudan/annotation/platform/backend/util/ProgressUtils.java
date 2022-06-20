@@ -17,9 +17,9 @@ import java.util.List;
  * @Description:
  */
 public class ProgressUtils {
-    private final static String WORK_SPACE = System.getProperty("user.home") + File.separator + "miner_space";
+    public final static String WORK_SPACE = System.getProperty("user.home") + File.separator + "miner_space";
     private final static String PROJECT_LIST_FILE = "project.in";
-    private final static String PROJECT_POSTFIX = ".project";
+    private final static String PROJECT_POSTFIX = "current.project";
     private final static String NONE = "N.A.";
     private final static String PRFC_TOTAL_PREFIX = "pRFC total:";
     private final static String PROGRESS_FILE = "progress.details";
@@ -36,28 +36,15 @@ public class ProgressUtils {
         // project info
         progressInfo.setTotalProjectNum(FileUtils.readLines(new File(workDir, PROJECT_LIST_FILE),
                 StandardCharsets.UTF_8).size());
-        String[] currentProjects = workDir.list((dir, name) -> name.endsWith(PROJECT_POSTFIX));
-        progressInfo.setCurrentProjectName(
-                (currentProjects == null || currentProjects.length == 0)
-                        ? NONE : currentProjects[0].replace(PROJECT_POSTFIX,""));
-
-        File projectInfoFile = new File(workDir, currentProjects[0]);
-        List<String> projectInfo = progressInfo.getCurrentProjectName().equals(NONE)
-                ? null : FileUtils.readLines(projectInfoFile, StandardCharsets.UTF_8);
-
-        progressInfo.setProjectQueueNum(
-                (!progressInfo.getCurrentProjectName().equals(NONE)) && progressInfo != null && projectInfo.size() > 1
-                        ? projectInfo.get(1) : NONE
-        );
-
-        progressInfo.setProjectStatTime(
-                (!progressInfo.getCurrentProjectName().equals(NONE)) && progressInfo != null && projectInfo.size() > 0
-                        ? projectInfo.get(0) : NONE
-        );
+        File file = new File(workDir,PROJECT_POSTFIX);
+        List<String> content = FileUtils.readLines(file,StandardCharsets.UTF_8);
+        progressInfo.setCurrentProjectName(content.get(0));
+        progressInfo.setProjectQueueNum(content.get(2));
+        progressInfo.setProjectStatTime( content.get(1));
 
         //rPFC
         File projrctDir = new File(
-                workDir, progressInfo.getCurrentProjectName());
+                workDir, progressInfo.getCurrentProjectName().split("/")[1]);
         List<String> pRFCList = FileUtils.readLines(new File(projrctDir,File.separator+BFC_LOG), StandardCharsets.UTF_8);
 
         Iterator<String> iterator = pRFCList.iterator();
@@ -67,10 +54,13 @@ public class ProgressUtils {
             }
         }
         progressInfo.setTotalPRFCNum(pRFCList.get(pRFCList.size()-1).split(PRFC_TOTAL_PREFIX)[1]);
+        File file1 = new File(projrctDir, PROGRESS_FILE);
+        if (file1.exists()){
+            progressInfo.setPRFCDoneNum(FileUtils.readLines(file1, StandardCharsets.UTF_8).size());
+        }else{
+            progressInfo.setPRFCDoneNum(0);
+        }
 
-        progressInfo.setPRFCDoneNum((!progressInfo.getCurrentProjectName().equals(NONE)) ? FileUtils.readLines(
-                new File(projrctDir, PROGRESS_FILE), StandardCharsets.UTF_8).size() : 0
-        );
         return progressInfo;
     }
 
@@ -89,12 +79,24 @@ public class ProgressUtils {
                 for (int i =3;i<lines.length;i++){
                     if (lines[i].startsWith("index")){
                         String[] details =  lines[i].split(":");
-                        steps.add(new String[]{details[1],details[2]});
+                        steps.add(new String[]{details[1],details[2],getTestStatus(lines[i+1])});
                     }
                 }
             }
         }
         searchDetails.setOrderList(steps);
         return searchDetails;
+    }
+
+    static String  getTestStatus(String message){
+        if (message.contains("PASS")){
+            return "PASS";
+        }else if (message.contains("FAL")){
+            return "FAL";
+        }else if (message.contains("CE")){
+            return "CE";
+        }else {
+            return "UNKNOWN";
+        }
     }
 }

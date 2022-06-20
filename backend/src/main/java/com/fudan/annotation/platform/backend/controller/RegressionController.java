@@ -30,7 +30,8 @@ public class RegressionController {
     public ResponseBean<List<Regression>> getAllRegressions(
             @RequestParam(name = "regression_uuid", required = false) String regressionUuid,
             @RequestParam(name = "regression_status", required = false) Integer regressionStatus,
-            @RequestParam(name = "project_name", required = false) String projectName) {
+            @RequestParam(name = "project_name", required = false) String projectName,
+            @RequestParam(name = "keyword", required = false) String kerWord) {
         try {
             List<Regression> regressionList = regressionService.getRegressions(regressionUuid, regressionStatus, projectName);
             return new ResponseBean<>(200, "get regression info success", regressionList);
@@ -96,6 +97,19 @@ public class RegressionController {
             @RequestParam String userToken) {
         try {
             RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid,userToken);
+            return new ResponseBean<>(200, "get regression info success", changedFiles);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
+        }
+    }
+
+    @GetMapping(value = "/migrate")
+    public ResponseBean<RegressionDetail> getMigrateFiles(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "bic") String bic,
+            @RequestParam String userToken) {
+        try {
+            RegressionDetail changedFiles = regressionService.getMigrateInfo(regressionUuid,bic,userToken);
             return new ResponseBean<>(200, "get regression info success", changedFiles);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);

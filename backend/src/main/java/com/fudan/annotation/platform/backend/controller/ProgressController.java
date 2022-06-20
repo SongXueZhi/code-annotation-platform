@@ -1,6 +1,7 @@
 package com.fudan.annotation.platform.backend.controller;
 
 import com.fudan.annotation.platform.backend.entity.ProgressInfo;
+import com.fudan.annotation.platform.backend.entity.RegressionDetail;
 import com.fudan.annotation.platform.backend.entity.SearchDetails;
 import com.fudan.annotation.platform.backend.service.ProgressService;
 import com.fudan.annotation.platform.backend.service.RegressionService;
@@ -35,12 +36,16 @@ public class ProgressController {
     public ResponseBean<SearchDetails> getSearchDetails(@RequestParam(name = "bfc") String bfc,
                                                        @RequestParam(name = "project_name") String projectName) {
         try {
+            if (projectName.contains("/")){
+                projectName = projectName.split("/")[1];
+            }
             SearchDetails searchDetails = progressService.getSearchDetails(projectName,bfc);
             return new ResponseBean<>(200, "get progress info success", searchDetails);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
         }
     }
+
 
     @Autowired
     public void setProgressService(ProgressService progressService) {

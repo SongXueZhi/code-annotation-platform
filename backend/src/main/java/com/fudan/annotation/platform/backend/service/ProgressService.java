@@ -1,9 +1,12 @@
 package com.fudan.annotation.platform.backend.service;
 
+import com.fudan.annotation.platform.backend.entity.ChangedFile;
+import com.fudan.annotation.platform.backend.entity.CodeElement;
 import com.fudan.annotation.platform.backend.entity.ProgressInfo;
 import com.fudan.annotation.platform.backend.entity.SearchDetails;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @Author: sxz

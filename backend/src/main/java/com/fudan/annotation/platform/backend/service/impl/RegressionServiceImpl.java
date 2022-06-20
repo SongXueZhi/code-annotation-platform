@@ -147,6 +147,62 @@ public class RegressionServiceImpl implements RegressionService {
         return regressionDetail;
     }
 
+    @Override
+    public RegressionDetail getMigrateInfo(String regressionUuid, String tv,String userToken) throws Exception {
+
+        Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
+        //get projectFile
+        File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
+        checkoutCommitCode(regression,projectFile,tv,userToken);
+        //get changed files: bic/bfc
+        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
+        List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv+"~1");
+        String testCase =  regression.getTestcase().split(";")[0];
+
+        String testCasePath = "NULL";
+        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles,testCase);
+        if (!hasTest){
+            try {
+                testCasePath =sourceCodeManager.getTestCasePath(userToken,regressionUuid,"bfc",testCase);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //set regression details
+        RegressionDetail regressionDetail = new RegressionDetail();
+        regressionDetail.setTestFilePath(testCasePath);
+
+        if (!testCasePath.equals("NULL")){
+            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/")+1);
+            ChangedFile bfcFile = new ChangedFile();
+            bfcFile.setFilename(fileName);
+            bfcFile.setNewPath(testCasePath);
+            bfcFile.setOldPath(testCasePath);
+            bfcFile.setType(ChangedFile.Type.TEST_SUITE);
+            bfcFiles.add(bfcFile);
+
+            ChangedFile bicFile = new ChangedFile();
+            bicFile.setFilename(fileName);
+            bicFile.setNewPath(testCasePath);
+            bicFile.setOldPath(testCasePath);
+            bicFile.setType(ChangedFile.Type.TEST_SUITE);
+            bicFiles.add(bicFile);
+        }
+        regressionDetail.setBfcURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+                regression.getBfc()));
+        regressionDetail.setBicURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+                regression.getBic()));
+        regressionDetail.setRegressionUuid(regressionUuid);
+        regressionDetail.setProjectFullName(regression.getProjectFullName());
+        regressionDetail.setBfc(regression.getBfc());
+        regressionDetail.setBic(regression.getBic());
+        regressionDetail.setBfcChangedFiles(bfcFiles);
+        regressionDetail.setBicChangedFiles(bicFiles);
+        regressionDetail.setTestCaseName(regression.getTestcase().split(";")[0].split("#")[1]);
+        return regressionDetail;
+    }
+
     private boolean modifyCorrelationDetect(List<ChangedFile> bfcFiles, List<ChangedFile> bicFiles,
                                             String testCaseName) {
         boolean result = false;
@@ -236,6 +292,21 @@ public class RegressionServiceImpl implements RegressionService {
 
         targetCodeVersions.forEach(revision -> {
             revision.setLocalCodeDir(sourceCodeManager.checkout(revision, projectFile, regressionUuid, userToken));
+        });
+
+        targetCodeVersions.remove(0);
+        migrator.migrateTestAndDependency(rfc, targetCodeVersions, regression.getTestcase());
+    }
+
+    public void checkoutCommitCode(Regression regression, File projectFile,String bic,String userToken) {
+
+        List<Revision> targetCodeVersions = new ArrayList<>(4);
+        Revision rfc = new Revision("bfc", regression.getBfc());
+        targetCodeVersions.add(rfc);
+        targetCodeVersions.add(new Revision(bic, bic));
+        targetCodeVersions.forEach(revision -> {
+            revision.setLocalCodeDir(sourceCodeManager.checkout(revision, projectFile, regression.getRegressionUuid(),
+                    userToken));
         });
 
         targetCodeVersions.remove(0);

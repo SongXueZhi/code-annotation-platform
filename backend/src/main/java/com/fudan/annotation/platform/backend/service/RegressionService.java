@@ -57,6 +57,7 @@ public interface RegressionService {
      */
     RegressionDetail getChangedFiles(String regressionUuid, String userToken) throws Exception;
 
+    RegressionDetail getMigrateInfo(String regressionUuid,String bic, String userToken) throws Exception;
     /**
      * description checkout
      *
