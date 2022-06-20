@@ -28,5 +28,6 @@ public class Regression {
     private String work;
     private String testcase;
     private String descriptionTxt;
+    private String keyWord;
 
 }

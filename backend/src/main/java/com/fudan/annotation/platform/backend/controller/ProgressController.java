@@ -26,20 +26,21 @@ public class ProgressController {
         try {
             ProgressInfo progressInfo = progressService.getProgressInfo();
             progressInfo.setRegressionNum(regressionService.getRegressions(null, null,
-                    progressInfo.getCurrentProjectName()).size());
+                    progressInfo.getCurrentProjectName(), null).size());
             return new ResponseBean<>(200, "get progress info success", progressInfo);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
         }
     }
+
     @GetMapping(value = "/searchDetails")
     public ResponseBean<SearchDetails> getSearchDetails(@RequestParam(name = "bfc") String bfc,
-                                                       @RequestParam(name = "project_name") String projectName) {
+                                                        @RequestParam(name = "project_name") String projectName) {
         try {
-            if (projectName.contains("/")){
+            if (projectName.contains("/")) {
                 projectName = projectName.split("/")[1];
             }
-            SearchDetails searchDetails = progressService.getSearchDetails(projectName,bfc);
+            SearchDetails searchDetails = progressService.getSearchDetails(projectName, bfc);
             return new ResponseBean<>(200, "get progress info success", searchDetails);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);

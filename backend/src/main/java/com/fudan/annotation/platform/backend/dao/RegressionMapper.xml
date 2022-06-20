@@ -14,6 +14,7 @@
         <result column="bic" property="bic" jdbcType="VARCHAR"/>
         <result column="work" property="work" jdbcType="VARCHAR"/>
         <result column="testcase" property="testcase" jdbcType="VARCHAR"/>
+        <result column="key_word" property="keyWord" jdbcType="VARCHAR"/>
     </resultMap>
 
     <select id="selectRegression" resultMap="regression">
@@ -27,6 +28,9 @@
             </if>
             <if test="projectName != null">
                project_full_name like concat("%",#{projectName},"%")
+            </if>
+            <if test="keyWord != null">
+                key_word like concat("%",#{keyWord},"%")
             </if>
         </trim>
         ORDER BY order_value

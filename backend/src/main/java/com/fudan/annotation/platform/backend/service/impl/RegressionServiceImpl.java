@@ -42,8 +42,8 @@ public class RegressionServiceImpl implements RegressionService {
     private Migrator migrator;
 
     @Override
-    public List<Regression> getRegressions(String regressionUuid, Integer regressionStatus, String projectName) {
-        return regressionMapper.selectRegression(regressionUuid, regressionStatus, projectName);
+    public List<Regression> getRegressions(String regressionUuid, Integer regressionStatus, String projectName, String keyWord) {
+        return regressionMapper.selectRegression(regressionUuid, regressionStatus, projectName, keyWord);
     }
 
     @Override
