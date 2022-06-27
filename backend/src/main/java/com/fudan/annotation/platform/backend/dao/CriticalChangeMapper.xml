@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fudan.annotation.platform.backend.dao.AccountMapper" >
+
+  <select id="setHunks" resultType="com.fudan.annotation.platform.backend.entity.Account" >
+    select *
+    from account
+    <if test="uuid != null">
+      where uuid = #{uuid}
+    </if>
+    <if test="accountName != null">
+      where account_name = #{accountName}
+    </if>
+    <if test="accountRight != null">
+      where account_right = #{accountRight}
+    </if>
+  </select>
+
+</mapper>

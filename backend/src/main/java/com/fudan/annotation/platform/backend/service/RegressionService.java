@@ -1,6 +1,7 @@
 package com.fudan.annotation.platform.backend.service;
 
 import com.fudan.annotation.platform.backend.entity.CodeDetails;
+import com.fudan.annotation.platform.backend.entity.Hunk;
 import com.fudan.annotation.platform.backend.entity.RegressionDetail;
 import com.fudan.annotation.platform.backend.entity.Regression;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -81,4 +82,12 @@ public interface RegressionService {
     String runTest(String regressionUuid, String userToken, String revisionFlag);
 
     String readRuntimeResult(String filaPath) throws IOException;
+
+    /**
+     * description set critical change hunk
+     *
+     * @param regressionUuid regressionUuid
+     * @param hunkDTO  single hunk patch
+     */
+    Void setCriticalChange(String regressionUuid, Hunk hunkDTO);
 }

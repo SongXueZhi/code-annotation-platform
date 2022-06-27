@@ -4,6 +4,7 @@ import com.fudan.annotation.platform.backend.config.Configs;
 import com.fudan.annotation.platform.backend.core.Executor;
 import com.fudan.annotation.platform.backend.core.Migrator;
 import com.fudan.annotation.platform.backend.core.SourceCodeManager;
+import com.fudan.annotation.platform.backend.dao.CriticalChangeMapper;
 import com.fudan.annotation.platform.backend.dao.ProjectMapper;
 import com.fudan.annotation.platform.backend.dao.RegressionMapper;
 import com.fudan.annotation.platform.backend.entity.*;
@@ -36,6 +37,8 @@ public class RegressionServiceImpl implements RegressionService {
     private RegressionMapper regressionMapper;
     @Autowired
     private ProjectMapper projectMapper;
+    @Autowired
+    private CriticalChangeMapper criticalChangeMapper;
     @Autowired
     private SourceCodeManager sourceCodeManager;
     @Autowired
@@ -344,6 +347,12 @@ public class RegressionServiceImpl implements RegressionService {
     @Override
     public String readRuntimeResult(String filaPath) throws IOException {
         return FileUtils.readFileToString(new File(filaPath), "UTF-8");
+    }
+
+    @Override
+    public Void setCriticalChange(String regressionUuid, Hunk hunkDTO) {
+        criticalChangeMapper.setHunks(regressionUuid, hunkDTO);
+        return null;
     }
 
     @Autowired

@@ -1,8 +1,6 @@
 package com.fudan.annotation.platform.backend.controller;
 
-import com.fudan.annotation.platform.backend.entity.CodeDetails;
-import com.fudan.annotation.platform.backend.entity.RegressionDetail;
-import com.fudan.annotation.platform.backend.entity.Regression;
+import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
 import com.fudan.annotation.platform.backend.vo.ResponseBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,6 +166,18 @@ public class RegressionController {
             return new ResponseBean<>(200, "test success", logPath);
         } catch (Exception e) {
             return new ResponseBean<>(401, "test failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PutMapping(value = "/criticalChange")
+    public ResponseBean<CriticalChange> setCriticalChange(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestBody Hunk hunkDTO) {
+        try {
+            regressionService.setCriticalChange(regressionUuid, hunkDTO);
+            return new ResponseBean<>(200, "record critical change success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "record critical change failed :" + e.getMessage(), null);
         }
     }
 
