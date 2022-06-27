@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.fudan.annotation.platform.backend.dao.AccountMapper" >
+<mapper namespace="com.fudan.annotation.platform.backend.dao.CriticalChangeMapper">
 
-  <select id="setHunks" resultType="com.fudan.annotation.platform.backend.entity.Account" >
-    select *
-    from account
-    <if test="uuid != null">
-      where uuid = #{uuid}
-    </if>
-    <if test="accountName != null">
-      where account_name = #{accountName}
-    </if>
-    <if test="accountRight != null">
-      where account_right = #{accountRight}
-    </if>
-  </select>
+    <resultMap id="hunk" type="com.fudan.annotation.platform.backend.entity.HunkInfo">
+        <result column="regression_uuid" property="regressionUuid" jdbcType="VARCHAR"/>
+        <result column="revision_name" property="revisionName" jdbcType="VARCHAR"/>
+        <result column="new_path" property="newPath" jdbcType="VARCHAR"/>
+        <result column="old_path" property="oldPath" jdbcType="VARCHAR"/>
+        <result column="beginA" property="beginA" jdbcType="INTEGER"/>
+        <result column="beginB" property="beginB" jdbcType="INTEGER"/>
+        <result column="endA" property="endA" jdbcType="INTEGER"/>
+        <result column="endB" property="endB" jdbcType="INTEGER"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <insert id="setHunks" parameterType="com.fudan.annotation.platform.backend.entity.HunkInfo">
+        insert into critical_change
+        (regression_uuid, revision_name, new_path, old_path, beginA, beginB, endA, endB, type)
+        values (#{regressionUuid},
+                #{revisionName},
+                #{newPath},
+                #{oldPath},
+                #{beginA},
+                #{beginB},
+                #{endA},
+                #{endB},
+                #{type,});
+    </insert>
 
 </mapper>

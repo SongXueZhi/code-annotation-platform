@@ -1,6 +1,7 @@
 package com.fudan.annotation.platform.backend.dao;
 
-import com.fudan.annotation.platform.backend.entity.Hunk;
+import com.fudan.annotation.platform.backend.entity.HunkEntity;
+import com.fudan.annotation.platform.backend.entity.HunkInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -8,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Mapper
 public interface CriticalChangeMapper {
 
-    void setHunks(String regressionUuid, Hunk hunkDTO);
+    void setHunks(HunkInfo hunkInfo);
 }

@@ -1,10 +1,9 @@
 package com.fudan.annotation.platform.backend.service;
 
 import com.fudan.annotation.platform.backend.entity.CodeDetails;
-import com.fudan.annotation.platform.backend.entity.Hunk;
+import com.fudan.annotation.platform.backend.entity.HunkEntity;
 import com.fudan.annotation.platform.backend.entity.RegressionDetail;
 import com.fudan.annotation.platform.backend.entity.Regression;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,7 +57,8 @@ public interface RegressionService {
      */
     RegressionDetail getChangedFiles(String regressionUuid, String userToken) throws Exception;
 
-    RegressionDetail getMigrateInfo(String regressionUuid,String bic, String userToken) throws Exception;
+    RegressionDetail getMigrateInfo(String regressionUuid, String bic, String userToken) throws Exception;
+
     /**
      * description checkout
      *
@@ -87,7 +87,8 @@ public interface RegressionService {
      * description set critical change hunk
      *
      * @param regressionUuid regressionUuid
-     * @param hunkDTO  single hunk patch
+     * @param revisionName  revision name
+     * @param hunkEntityDTO  single hunk patch
      */
-    Void setCriticalChange(String regressionUuid, Hunk hunkDTO);
+    Void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO);
 }

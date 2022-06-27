@@ -6,7 +6,6 @@ import com.fudan.annotation.platform.backend.vo.ResponseBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.List;
@@ -94,7 +93,7 @@ public class RegressionController {
             @RequestParam(name = "regression_uuid") String regressionUuid,
             @RequestParam String userToken) {
         try {
-            RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid,userToken);
+            RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid, userToken);
             return new ResponseBean<>(200, "get regression info success", changedFiles);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
@@ -107,7 +106,7 @@ public class RegressionController {
             @RequestParam(name = "bic") String bic,
             @RequestParam String userToken) {
         try {
-            RegressionDetail changedFiles = regressionService.getMigrateInfo(regressionUuid,bic,userToken);
+            RegressionDetail changedFiles = regressionService.getMigrateInfo(regressionUuid, bic, userToken);
             return new ResponseBean<>(200, "get regression info success", changedFiles);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
@@ -147,7 +146,7 @@ public class RegressionController {
     public ResponseBean<String> getConsoleResult(
             @RequestParam(name = "path") String path) {
         try {
-            String revisionRunResult = regressionService.readRuntimeResult(URLDecoder.decode(path,"UTF-8"));
+            String revisionRunResult = regressionService.readRuntimeResult(URLDecoder.decode(path, "UTF-8"));
             return new ResponseBean<>(200, "get result success", revisionRunResult);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get result failed :" + e.getMessage(), null);
@@ -162,7 +161,7 @@ public class RegressionController {
             @RequestParam String revisionFlag) {
         try {
             String logPath = regressionService.runTest(regressionUuid, userToken, revisionFlag);
-            logPath = URLEncoder.encode(logPath,"UTF-8");
+            logPath = URLEncoder.encode(logPath, "UTF-8");
             return new ResponseBean<>(200, "test success", logPath);
         } catch (Exception e) {
             return new ResponseBean<>(401, "test failed :" + e.getMessage(), null);
@@ -172,9 +171,10 @@ public class RegressionController {
     @PutMapping(value = "/criticalChange")
     public ResponseBean<CriticalChange> setCriticalChange(
             @RequestParam(name = "regression_uuid") String regressionUuid,
-            @RequestBody Hunk hunkDTO) {
+            @RequestParam(name = "revision_name") String revisionName,
+            @RequestBody HunkEntity hunkEntityDTO) {
         try {
-            regressionService.setCriticalChange(regressionUuid, hunkDTO);
+            regressionService.setCriticalChange(regressionUuid, revisionName, hunkEntityDTO);
             return new ResponseBean<>(200, "record critical change success", null);
         } catch (Exception e) {
             return new ResponseBean<>(401, "record critical change failed :" + e.getMessage(), null);

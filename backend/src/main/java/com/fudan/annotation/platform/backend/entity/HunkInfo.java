@@ -4,18 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * description:
  *
  * @author Richy
- * create: 2022-06-27 20:24
+ * create: 2022-06-27 21:58
  **/
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Hunk implements Serializable {
+public class HunkInfo {
+    String revisionName;
+    private String regressionUuid;
     private  String  newPath;
     private  String  oldPath;
     private  int  beginA;

@@ -1,13 +1,23 @@
 package com.fudan.annotation.platform.backend.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 /**
  * description:
  *
  * @author Richy
- * create: 2022-06-27 20:25
+ * create: 2022-06-27 21:41
  **/
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CriticalChange {
-    private List<Hunk> hunkEntityList;
+    // bic/bfc
+    String revisionName;
+    private List<HunkEntity> hunkEntityList;
+
 }

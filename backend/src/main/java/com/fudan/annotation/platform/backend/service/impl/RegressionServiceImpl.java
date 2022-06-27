@@ -104,13 +104,13 @@ public class RegressionServiceImpl implements RegressionService {
         //get changed files: bic/bfc
         List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, regression.getBic(), regression.getWork());
-        String testCase =  regression.getTestcase().split(";")[0];
+        String testCase = regression.getTestcase().split(";")[0];
 
         String testCasePath = "NULL";
-        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles,testCase);
-        if (!hasTest){
+        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles, testCase);
+        if (!hasTest) {
             try {
-                testCasePath =sourceCodeManager.getTestCasePath(userToken,regressionUuid,"bfc",testCase);
+                testCasePath = sourceCodeManager.getTestCasePath(userToken, regressionUuid, "bfc", testCase);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -120,8 +120,8 @@ public class RegressionServiceImpl implements RegressionService {
         RegressionDetail regressionDetail = new RegressionDetail();
         regressionDetail.setTestFilePath(testCasePath);
 
-        if (!testCasePath.equals("NULL")){
-            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/")+1);
+        if (!testCasePath.equals("NULL")) {
+            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/") + 1);
             ChangedFile bfcFile = new ChangedFile();
             bfcFile.setFilename(fileName);
             bfcFile.setNewPath(testCasePath);
@@ -136,9 +136,9 @@ public class RegressionServiceImpl implements RegressionService {
             bicFile.setType(ChangedFile.Type.TEST_SUITE);
             bicFiles.add(bicFile);
         }
-        regressionDetail.setBfcURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBfcURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBfc()));
-        regressionDetail.setBicURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBicURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBic()));
         regressionDetail.setRegressionUuid(regressionUuid);
         regressionDetail.setProjectFullName(regression.getProjectFullName());
@@ -151,22 +151,22 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public RegressionDetail getMigrateInfo(String regressionUuid, String tv,String userToken) throws Exception {
+    public RegressionDetail getMigrateInfo(String regressionUuid, String tv, String userToken) throws Exception {
 
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         //get projectFile
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
-        checkoutCommitCode(regression,projectFile,tv,userToken);
+        checkoutCommitCode(regression, projectFile, tv, userToken);
         //get changed files: bic/bfc
         List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
-        List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv+"~1");
-        String testCase =  regression.getTestcase().split(";")[0];
+        List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv + "~1");
+        String testCase = regression.getTestcase().split(";")[0];
 
         String testCasePath = "NULL";
-        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles,testCase);
-        if (!hasTest){
+        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles, testCase);
+        if (!hasTest) {
             try {
-                testCasePath =sourceCodeManager.getTestCasePath(userToken,regressionUuid,"bfc",testCase);
+                testCasePath = sourceCodeManager.getTestCasePath(userToken, regressionUuid, "bfc", testCase);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -176,8 +176,8 @@ public class RegressionServiceImpl implements RegressionService {
         RegressionDetail regressionDetail = new RegressionDetail();
         regressionDetail.setTestFilePath(testCasePath);
 
-        if (!testCasePath.equals("NULL")){
-            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/")+1);
+        if (!testCasePath.equals("NULL")) {
+            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/") + 1);
             ChangedFile bfcFile = new ChangedFile();
             bfcFile.setFilename(fileName);
             bfcFile.setNewPath(testCasePath);
@@ -192,9 +192,9 @@ public class RegressionServiceImpl implements RegressionService {
             bicFile.setType(ChangedFile.Type.TEST_SUITE);
             bicFiles.add(bicFile);
         }
-        regressionDetail.setBfcURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBfcURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBfc()));
-        regressionDetail.setBicURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBicURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBic()));
         regressionDetail.setRegressionUuid(regressionUuid);
         regressionDetail.setProjectFullName(regression.getProjectFullName());
@@ -301,7 +301,7 @@ public class RegressionServiceImpl implements RegressionService {
         migrator.migrateTestAndDependency(rfc, targetCodeVersions, regression.getTestcase());
     }
 
-    public void checkoutCommitCode(Regression regression, File projectFile,String bic,String userToken) {
+    public void checkoutCommitCode(Regression regression, File projectFile, String bic, String userToken) {
 
         List<Revision> targetCodeVersions = new ArrayList<>(4);
         Revision rfc = new Revision("bfc", regression.getBfc());
@@ -350,8 +350,18 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public Void setCriticalChange(String regressionUuid, Hunk hunkDTO) {
-        criticalChangeMapper.setHunks(regressionUuid, hunkDTO);
+    public Void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO) {
+        HunkInfo hunkInfo = new HunkInfo();
+        hunkInfo.setRegressionUuid(regressionUuid);
+        hunkInfo.setRevisionName(revisionName);
+        hunkInfo.setNewPath(hunkEntityDTO.getNewPath());
+        hunkInfo.setOldPath(hunkEntityDTO.getOldPath());
+        hunkInfo.setBeginA(hunkEntityDTO.getBeginA());
+        hunkInfo.setBeginB(hunkEntityDTO.getBeginB());
+        hunkInfo.setEndA(hunkEntityDTO.getEndA());
+        hunkInfo.setEndB(hunkEntityDTO.getEndB());
+        hunkInfo.setType(hunkEntityDTO.getType());
+        criticalChangeMapper.setHunks(hunkInfo);
         return null;
     }
 
