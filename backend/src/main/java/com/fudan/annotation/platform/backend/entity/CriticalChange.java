@@ -8,5 +8,6 @@ import java.util.List;
  * @Description:
  */
 public class CriticalChange {
+    String name;//bfc or bic
     private List<HunkEntity> hunkEntityList;
 }
