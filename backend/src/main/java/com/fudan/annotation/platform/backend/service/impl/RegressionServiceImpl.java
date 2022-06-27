@@ -99,7 +99,7 @@ public class RegressionServiceImpl implements RegressionService {
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
 
         //get changed files: bic/bfc
-        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
+        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBfc(), regression.getBuggy());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, regression.getBic(), regression.getWork());
         String testCase =  regression.getTestcase().split(";")[0];
 
@@ -155,7 +155,7 @@ public class RegressionServiceImpl implements RegressionService {
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
         checkoutCommitCode(regression,projectFile,tv,userToken);
         //get changed files: bic/bfc
-        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
+        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBfc(), regression.getBuggy());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv+"~1");
         String testCase =  regression.getTestcase().split(";")[0];
 
