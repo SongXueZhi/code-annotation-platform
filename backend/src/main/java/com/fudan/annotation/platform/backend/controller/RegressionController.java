@@ -169,7 +169,7 @@ public class RegressionController {
     }
 
     @PutMapping(value = "/criticalChange")
-    public ResponseBean<CriticalChange> setCriticalChange(
+    public ResponseBean setCriticalChange(
             @RequestParam(name = "regression_uuid") String regressionUuid,
             @RequestParam(name = "revision_name") String revisionName,
             @RequestBody HunkEntity hunkEntityDTO) {
@@ -178,6 +178,18 @@ public class RegressionController {
             return new ResponseBean<>(200, "record critical change success", null);
         } catch (Exception e) {
             return new ResponseBean<>(401, "record critical change failed :" + e.getMessage(), null);
+        }
+    }
+
+    @GetMapping(value = "/criticalChange")
+    public ResponseBean<CriticalChange> getCriticalChange(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "revision_name") String revisionName) {
+        try {
+            CriticalChange criticalChange = regressionService.getCriticalChange(regressionUuid, revisionName);
+            return new ResponseBean<>(200, "get critical change success", criticalChange);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "get critical change failed :" + e.getMessage(), null);
         }
     }
 

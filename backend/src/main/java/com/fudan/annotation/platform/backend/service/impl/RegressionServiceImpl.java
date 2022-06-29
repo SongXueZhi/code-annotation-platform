@@ -102,7 +102,7 @@ public class RegressionServiceImpl implements RegressionService {
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
 
         //get changed files: bic/bfc
-        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
+        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBfc(), regression.getBuggy());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, regression.getBic(), regression.getWork());
         String testCase = regression.getTestcase().split(";")[0];
 
@@ -158,7 +158,7 @@ public class RegressionServiceImpl implements RegressionService {
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
         checkoutCommitCode(regression, projectFile, tv, userToken);
         //get changed files: bic/bfc
-        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBuggy(), regression.getBfc());
+        List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBfc(), regression.getBuggy());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv + "~1");
         String testCase = regression.getTestcase().split(";")[0];
 
@@ -351,18 +351,18 @@ public class RegressionServiceImpl implements RegressionService {
 
     @Override
     public Void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO) {
-        HunkInfo hunkInfo = new HunkInfo();
-        hunkInfo.setRegressionUuid(regressionUuid);
-        hunkInfo.setRevisionName(revisionName);
-        hunkInfo.setNewPath(hunkEntityDTO.getNewPath());
-        hunkInfo.setOldPath(hunkEntityDTO.getOldPath());
-        hunkInfo.setBeginA(hunkEntityDTO.getBeginA());
-        hunkInfo.setBeginB(hunkEntityDTO.getBeginB());
-        hunkInfo.setEndA(hunkEntityDTO.getEndA());
-        hunkInfo.setEndB(hunkEntityDTO.getEndB());
-        hunkInfo.setType(hunkEntityDTO.getType());
-        criticalChangeMapper.setHunks(hunkInfo);
+        criticalChangeMapper.setHunks(regressionUuid, revisionName, hunkEntityDTO.getNewPath(), hunkEntityDTO.getOldPath(),
+                hunkEntityDTO.getBeginA(), hunkEntityDTO.getBeginB(), hunkEntityDTO.getEndA(), hunkEntityDTO.getEndB(), hunkEntityDTO.getType());
         return null;
+    }
+
+    @Override
+    public CriticalChange getCriticalChange(String regressionUuid, String revisionName) {
+        CriticalChange criticalChange = new CriticalChange();
+        List<HunkEntity> hunks = criticalChangeMapper.getHunks(regressionUuid, revisionName);
+        criticalChange.setRevisionName(revisionName);
+        criticalChange.setHunkEntityList(hunks);
+        return criticalChange;
     }
 
     @Autowired

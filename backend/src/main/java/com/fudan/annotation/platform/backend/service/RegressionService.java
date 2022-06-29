@@ -1,9 +1,6 @@
 package com.fudan.annotation.platform.backend.service;
 
-import com.fudan.annotation.platform.backend.entity.CodeDetails;
-import com.fudan.annotation.platform.backend.entity.HunkEntity;
-import com.fudan.annotation.platform.backend.entity.RegressionDetail;
-import com.fudan.annotation.platform.backend.entity.Regression;
+import com.fudan.annotation.platform.backend.entity.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -91,4 +88,12 @@ public interface RegressionService {
      * @param hunkEntityDTO  single hunk patch
      */
     Void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO);
+
+    /**
+     * description get critical change hunk
+     *
+     * @param regressionUuid regressionUuid
+     * @param revisionName  revision name
+     */
+    CriticalChange getCriticalChange(String regressionUuid, String revisionName);
 }
