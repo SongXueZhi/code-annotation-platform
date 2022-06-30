@@ -33,4 +33,9 @@
         </where>
     </select>
 
+    <delete id="deletHunks" parameterType="java.lang.String">
+        delete from critical_change
+        where regression_uuid = #{regressionUuid} and revision_name = #{revisionName}
+    </delete>
+
 </mapper>

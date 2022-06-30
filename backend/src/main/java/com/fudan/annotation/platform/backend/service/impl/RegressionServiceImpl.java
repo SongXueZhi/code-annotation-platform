@@ -350,10 +350,9 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public Void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO) {
+    public void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO) {
         criticalChangeMapper.setHunks(regressionUuid, revisionName, hunkEntityDTO.getNewPath(), hunkEntityDTO.getOldPath(),
                 hunkEntityDTO.getBeginA(), hunkEntityDTO.getBeginB(), hunkEntityDTO.getEndA(), hunkEntityDTO.getEndB(), hunkEntityDTO.getType());
-        return null;
     }
 
     @Override
@@ -363,6 +362,11 @@ public class RegressionServiceImpl implements RegressionService {
         criticalChange.setRevisionName(revisionName);
         criticalChange.setHunkEntityList(hunks);
         return criticalChange;
+    }
+
+    @Override
+    public void deleteCriticalChange(String regressionUuid, String revisionName) {
+        criticalChangeMapper.deletHunks(regressionUuid, revisionName);
     }
 
     @Autowired

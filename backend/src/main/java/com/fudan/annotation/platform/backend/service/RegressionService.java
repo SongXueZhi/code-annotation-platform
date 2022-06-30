@@ -87,7 +87,7 @@ public interface RegressionService {
      * @param revisionName  revision name
      * @param hunkEntityDTO  single hunk patch
      */
-    Void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO);
+    void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO);
 
     /**
      * description get critical change hunk
@@ -96,4 +96,12 @@ public interface RegressionService {
      * @param revisionName  revision name
      */
     CriticalChange getCriticalChange(String regressionUuid, String revisionName);
+
+    /**
+     * description delete critical change hunk
+     *
+     * @param regressionUuid regressionUuid
+     * @param revisionName  revision name
+     */
+    void deleteCriticalChange(String regressionUuid, String revisionName);
 }

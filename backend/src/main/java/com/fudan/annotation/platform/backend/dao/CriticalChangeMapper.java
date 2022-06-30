@@ -14,4 +14,6 @@ public interface CriticalChangeMapper {
                   int beginA, int beginB, int endA, int endB, String type);
 
     List<HunkEntity> getHunks(String regressionUuid, String revisionName);
+
+    void deletHunks(String regressionUuid, String revisionName);
 }

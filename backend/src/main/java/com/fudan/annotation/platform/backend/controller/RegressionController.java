@@ -193,6 +193,18 @@ public class RegressionController {
         }
     }
 
+    @DeleteMapping(value = "/criticalChange")
+    public ResponseBean deleteCriticalChange(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "revision_name") String revisionName) {
+        try {
+            regressionService.deleteCriticalChange(regressionUuid, revisionName);
+            return new ResponseBean<>(200, "get critical change success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "get critical change failed :" + e.getMessage(), null);
+        }
+    }
+
     @Autowired
     public void setRegressionService(RegressionService regressionService) {
         this.regressionService = regressionService;
