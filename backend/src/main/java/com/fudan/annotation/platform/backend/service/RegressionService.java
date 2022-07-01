@@ -1,6 +1,8 @@
 package com.fudan.annotation.platform.backend.service;
 
 import com.fudan.annotation.platform.backend.entity.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.util.List;
@@ -84,7 +86,7 @@ public interface RegressionService {
      * description set critical change hunk
      *
      * @param regressionUuid regressionUuid
-     * @param revisionName  revision name
+     * @param revisionName   revision name
      * @param hunkEntityDTO  single hunk patch
      */
     void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO);
@@ -93,7 +95,7 @@ public interface RegressionService {
      * description get critical change hunk
      *
      * @param regressionUuid regressionUuid
-     * @param revisionName  revision name
+     * @param revisionName   revision name
      */
     CriticalChange getCriticalChange(String regressionUuid, String revisionName);
 
@@ -101,7 +103,18 @@ public interface RegressionService {
      * description delete critical change hunk
      *
      * @param regressionUuid regressionUuid
-     * @param revisionName  revision name
+     * @param revisionName   revision name
      */
     void deleteCriticalChange(String regressionUuid, String revisionName);
+
+    /**
+     * apply hunks to special file and return the code
+     *
+     * @param userToken      usertoken
+     * @param regressionUuid regressionUuid
+     * @param oldRevision    old revision name
+     * @param newRevision    new revision name
+     * @param hunkList       hunks need to apply
+     */
+    String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList);
 }

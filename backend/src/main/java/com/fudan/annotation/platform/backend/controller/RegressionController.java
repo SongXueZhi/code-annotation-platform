@@ -205,6 +205,21 @@ public class RegressionController {
         }
     }
 
+    @PutMapping(value = "/hunk")
+    public ResponseBean<String> applyHunks(
+            @RequestParam String userToken,
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "old_revision") String oldRevision,
+            @RequestParam(name = "new_revision") String newRevision,
+            @RequestBody List<HunkEntity> hunkList) {
+        try {
+            String code = regressionService.applyHunks(userToken, regressionUuid, oldRevision, newRevision, hunkList);
+            return new ResponseBean<>(200, "apply hunks success", code);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "apply hunks failed :" + e.getMessage(), null);
+        }
+    }
+
     @Autowired
     public void setRegressionService(RegressionService regressionService) {
         this.regressionService = regressionService;

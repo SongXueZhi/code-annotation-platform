@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -367,6 +368,33 @@ public class RegressionServiceImpl implements RegressionService {
     @Override
     public void deleteCriticalChange(String regressionUuid, String revisionName) {
         criticalChangeMapper.deletHunks(regressionUuid, revisionName);
+    }
+
+    @Override
+    public String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList) {
+        //默认hunk来自同一file，并写入同一file
+        String insertPath = hunkList.get(0).getNewPath();
+        File insertFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, newRevision, insertPath);
+        sourceCodeManager.backupFile(insertFile);
+
+        for (HunkEntity hunkEntity : hunkList) {
+            //获取old path中的hunk代码
+            String hunkPath = hunkEntity.getOldPath();
+            String fileName = hunkPath.substring(hunkPath.lastIndexOf("/") + 1);
+            File hunkFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, oldRevision, hunkPath);
+//            String hunkCode = sourceCodeManager.getRevisionCode(hunkFile);
+            HashMap<Integer, String> codeMap = new HashMap<>();
+            //获取beginA到endA的每一行代码
+            for (int i = hunkEntity.getBeginA(); i <= hunkEntity.getEndA(); i++) {
+                String code = sourceCodeManager.getLineCode(fileName,i);
+                codeMap.put(i,code);
+            }
+
+            //apply该hunk的代码到备份后的新文件beginB到endB
+
+        }
+
+        return null;
     }
 
     @Autowired
