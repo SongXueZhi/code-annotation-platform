@@ -1,6 +1,7 @@
 package com.fudan.annotation.platform.backend.core;
 
 import com.fudan.annotation.platform.backend.entity.Revision;
+import com.fudan.annotation.platform.backend.util.FileUtil;
 import com.fudan.annotation.platform.backend.util.GitUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.DirectoryScanner;
@@ -132,20 +133,35 @@ public class SourceCodeManager {
     public String getLineCode(String fileName, int readLine) {
         String line;
         try (BufferedReader br = Files.newBufferedReader(Paths.get(fileName))) {
-            int i=0;
+            int i = 0;
             while ((line = br.readLine()) != null) {
                 i++;
-                if(i==readLine){
+                if (i == readLine) {
                     return line;
                 }
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-            return null;
+        return null;
     }
 
-    public void backupFile(File insertFile) {
+    public void backupFile(File sourceFile) throws IOException {
+        String fileName = sourceFile.getName();
+        if (fileName.endsWith(".java")) {
+            fileName = fileName.replace(".java", ".b");
+        }
+        File backFile = new File(sourceFile.getParent(), fileName);
+
+        FileUtil.copyFileStream(sourceFile, backFile);
+    }
+
+    public void recoverFile(String sourceFile) {
+        File backupFile = new File(sourceFile);
+        String fileName = backupFile.getName();
+        fileName = fileName.replace(".b", ".java");
+        File destFile = new File(backupFile.getParent(), fileName);
+        backupFile.renameTo(destFile);
     }
 
 }

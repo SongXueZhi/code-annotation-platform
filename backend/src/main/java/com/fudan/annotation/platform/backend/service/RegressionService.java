@@ -116,5 +116,17 @@ public interface RegressionService {
      * @param newRevision    new revision name
      * @param hunkList       hunks need to apply
      */
-    String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList);
+    String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList) throws IOException;
+
+    /**
+     * modified a file with new code
+     *
+     * @param userToken      usertoken
+     * @param regressionUuid regressionUuid
+     * @param oldPath        old revision path
+     * @param revisionName   old revision name(bic->work, bfc->buggy)
+     * @param newCode        updated code
+     * @param coverStatus    modified or not(0-adopt old code 1-adopt new code)
+     */
+    void modifiedCode(String userToken, String regressionUuid, String oldPath, String revisionName, String newCode, Integer coverStatus) throws IOException;
 }

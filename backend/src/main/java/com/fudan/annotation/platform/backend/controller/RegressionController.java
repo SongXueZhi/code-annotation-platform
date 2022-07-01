@@ -3,6 +3,7 @@ package com.fudan.annotation.platform.backend.controller;
 import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
 import com.fudan.annotation.platform.backend.vo.ResponseBean;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -217,6 +218,22 @@ public class RegressionController {
             return new ResponseBean<>(200, "apply hunks success", code);
         } catch (Exception e) {
             return new ResponseBean<>(401, "apply hunks failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PostMapping(value = "/modified")
+    public ResponseBean modifiedCode(
+            @RequestParam String userToken,
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "old_path") String oldPath,
+            @RequestParam(name = "revision_name") String revisionName,
+            @RequestBody String newCode,
+            @RequestParam(name = "cover_status") Integer coverStatus) {
+        try {
+            regressionService.modifiedCode(userToken, regressionUuid, oldPath, revisionName, newCode, coverStatus);
+            return new ResponseBean<>(200, "modified code success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "modified code failed :" + e.getMessage(), null);
         }
     }
 

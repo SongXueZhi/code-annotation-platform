@@ -9,6 +9,7 @@ import com.fudan.annotation.platform.backend.dao.ProjectMapper;
 import com.fudan.annotation.platform.backend.dao.RegressionMapper;
 import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
+import com.fudan.annotation.platform.backend.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -371,7 +372,7 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList) {
+    public String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList) throws IOException {
         //默认hunk来自同一file，并写入同一file
         String insertPath = hunkList.get(0).getNewPath();
         File insertFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, newRevision, insertPath);
@@ -386,8 +387,8 @@ public class RegressionServiceImpl implements RegressionService {
             HashMap<Integer, String> codeMap = new HashMap<>();
             //获取beginA到endA的每一行代码
             for (int i = hunkEntity.getBeginA(); i <= hunkEntity.getEndA(); i++) {
-                String code = sourceCodeManager.getLineCode(fileName,i);
-                codeMap.put(i,code);
+                String code = sourceCodeManager.getLineCode(fileName, i);
+                codeMap.put(i, code);
             }
 
             //apply该hunk的代码到备份后的新文件beginB到endB
@@ -395,6 +396,43 @@ public class RegressionServiceImpl implements RegressionService {
         }
 
         return null;
+    }
+
+    @Override
+    public void modifiedCode(String userToken, String regressionUuid, String oldPath, String revisionName, String newCode, Integer coverStatus) throws IOException {
+        HashMap<String, String> revisionMap = new HashMap<>();
+        revisionMap.put("bfc", "buggy");
+        revisionMap.put("bic", "work");
+        String revisionFlag = revisionMap.get(revisionName);
+
+        //backup
+        String backupPath = "";
+        Boolean isBackup = false;
+
+        File oldFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, revisionFlag, oldPath);
+        File parentFile = new File(oldFile.getParent());
+        File[] fileList = parentFile.listFiles();
+        for (File file : fileList) {
+            if (file.getPath().endsWith(".b")) {
+                backupPath = file.getAbsolutePath();
+                isBackup = true;
+            }
+        }
+        //status为0，不做修改，删除当前文件，恢复后缀为.b的文件
+        if (coverStatus == 0) {
+            FileUtil.DeleteFileByPath(oldFile.getPath());
+            sourceCodeManager.recoverFile(backupPath);
+        } else {
+            //status为1，没有备份文件，则备份文件且将new code写入源文件
+            if (!isBackup) {
+                //back up
+                sourceCodeManager.backupFile(oldFile);
+                FileUtil.writeInFile(oldFile.getPath(), newCode);
+            } else {
+                //有备份文件，直接将new code覆盖到源文件中
+                FileUtil.writeInFile(oldPath, newCode);
+            }
+        }
     }
 
     @Autowired
