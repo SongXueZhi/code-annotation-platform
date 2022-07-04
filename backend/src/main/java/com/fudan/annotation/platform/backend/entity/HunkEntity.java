@@ -1,12 +1,20 @@
 package com.fudan.annotation.platform.backend.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 /**
- * @Author: sxz
- * @Date: 2022/06/27/10:50
- * @Description:
- */
+ * description:
+ *
+ * @author Richy
+ * create: 2022-06-27 20:24
+ **/
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class HunkEntity implements Serializable {
     private  String  newPath;
     private  String  oldPath;

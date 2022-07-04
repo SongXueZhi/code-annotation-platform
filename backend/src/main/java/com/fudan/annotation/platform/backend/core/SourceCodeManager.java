@@ -1,14 +1,19 @@
 package com.fudan.annotation.platform.backend.core;
 
 import com.fudan.annotation.platform.backend.entity.Revision;
+import com.fudan.annotation.platform.backend.util.FileUtil;
 import com.fudan.annotation.platform.backend.util.GitUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.DirectoryScanner;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * description:
@@ -18,8 +23,8 @@ import java.io.IOException;
  **/
 @Component
 public class SourceCodeManager {
-
-    private final static String workSpace = System.getProperty("user.home") + File.separator + "miner_space";
+    @Value("${richy.workSpace}")
+    private static String workSpace = "E:\\reg\\regminerTool\\test-transfer-space";
 
     public static String metaProjectsDirPath = workSpace + File.separator + "meta_projects";
     public static String cacheProjectsDirPath = workSpace + File.separator + "transfer_cache";
@@ -123,6 +128,40 @@ public class SourceCodeManager {
 //        System.out.println(stringBuffer.toString());
 //        return stringBuffer.toString();
 
+    }
+
+    public String getLineCode(String fileName, int readLine) {
+        String line;
+        try (BufferedReader br = Files.newBufferedReader(Paths.get(fileName))) {
+            int i = 0;
+            while ((line = br.readLine()) != null) {
+                i++;
+                if (i == readLine) {
+                    return line;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public void backupFile(File sourceFile) throws IOException {
+        String fileName = sourceFile.getName();
+        if (fileName.endsWith(".java")) {
+            fileName = fileName.replace(".java", ".b");
+        }
+        File backFile = new File(sourceFile.getParent(), fileName);
+
+        FileUtil.copyFileStream(sourceFile, backFile);
+    }
+
+    public void recoverFile(String sourceFile) {
+        File backupFile = new File(sourceFile);
+        String fileName = backupFile.getName();
+        fileName = fileName.replace(".b", ".java");
+        File destFile = new File(backupFile.getParent(), fileName);
+        backupFile.renameTo(destFile);
     }
 
 }

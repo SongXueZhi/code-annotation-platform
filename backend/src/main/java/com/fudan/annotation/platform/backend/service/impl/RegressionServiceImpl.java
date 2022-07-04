@@ -4,10 +4,12 @@ import com.fudan.annotation.platform.backend.config.Configs;
 import com.fudan.annotation.platform.backend.core.Executor;
 import com.fudan.annotation.platform.backend.core.Migrator;
 import com.fudan.annotation.platform.backend.core.SourceCodeManager;
+import com.fudan.annotation.platform.backend.dao.CriticalChangeMapper;
 import com.fudan.annotation.platform.backend.dao.ProjectMapper;
 import com.fudan.annotation.platform.backend.dao.RegressionMapper;
 import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
+import com.fudan.annotation.platform.backend.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,6 +39,8 @@ public class RegressionServiceImpl implements RegressionService {
     private RegressionMapper regressionMapper;
     @Autowired
     private ProjectMapper projectMapper;
+    @Autowired
+    private CriticalChangeMapper criticalChangeMapper;
     @Autowired
     private SourceCodeManager sourceCodeManager;
     @Autowired
@@ -101,13 +106,13 @@ public class RegressionServiceImpl implements RegressionService {
         //get changed files: bic/bfc
         List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBfc(), regression.getBuggy());
         List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, regression.getBic(), regression.getWork());
-        String testCase =  regression.getTestcase().split(";")[0];
+        String testCase = regression.getTestcase().split(";")[0];
 
         String testCasePath = "NULL";
-        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles,testCase);
-        if (!hasTest){
+        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles, testCase);
+        if (!hasTest) {
             try {
-                testCasePath =sourceCodeManager.getTestCasePath(userToken,regressionUuid,"bfc",testCase);
+                testCasePath = sourceCodeManager.getTestCasePath(userToken, regressionUuid, "bfc", testCase);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -117,8 +122,8 @@ public class RegressionServiceImpl implements RegressionService {
         RegressionDetail regressionDetail = new RegressionDetail();
         regressionDetail.setTestFilePath(testCasePath);
 
-        if (!testCasePath.equals("NULL")){
-            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/")+1);
+        if (!testCasePath.equals("NULL")) {
+            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/") + 1);
             ChangedFile bfcFile = new ChangedFile();
             bfcFile.setFilename(fileName);
             bfcFile.setNewPath(testCasePath);
@@ -133,9 +138,9 @@ public class RegressionServiceImpl implements RegressionService {
             bicFile.setType(ChangedFile.Type.TEST_SUITE);
             bicFiles.add(bicFile);
         }
-        regressionDetail.setBfcURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBfcURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBfc()));
-        regressionDetail.setBicURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBicURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBic()));
         regressionDetail.setRegressionUuid(regressionUuid);
         regressionDetail.setProjectFullName(regression.getProjectFullName());
@@ -148,22 +153,22 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public RegressionDetail getMigrateInfo(String regressionUuid, String tv,String userToken) throws Exception {
+    public RegressionDetail getMigrateInfo(String regressionUuid, String tv, String userToken) throws Exception {
 
         Regression regression = regressionMapper.getRegressionInfo(regressionUuid);
         //get projectFile
         File projectFile = sourceCodeManager.getMetaProjectDir(regression.getProjectUuid());
-        checkoutCommitCode(regression,projectFile,tv,userToken);
+        checkoutCommitCode(regression, projectFile, tv, userToken);
         //get changed files: bic/bfc
         List<ChangedFile> bfcFiles = migrator.getChangedFiles(projectFile, regression.getBfc(), regression.getBuggy());
-        List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv+"~1");
-        String testCase =  regression.getTestcase().split(";")[0];
+        List<ChangedFile> bicFiles = migrator.getChangedFiles(projectFile, tv, tv + "~1");
+        String testCase = regression.getTestcase().split(";")[0];
 
         String testCasePath = "NULL";
-        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles,testCase);
-        if (!hasTest){
+        boolean hasTest = modifyCorrelationDetect(bfcFiles, bicFiles, testCase);
+        if (!hasTest) {
             try {
-                testCasePath =sourceCodeManager.getTestCasePath(userToken,regressionUuid,"bfc",testCase);
+                testCasePath = sourceCodeManager.getTestCasePath(userToken, regressionUuid, "bfc", testCase);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -173,8 +178,8 @@ public class RegressionServiceImpl implements RegressionService {
         RegressionDetail regressionDetail = new RegressionDetail();
         regressionDetail.setTestFilePath(testCasePath);
 
-        if (!testCasePath.equals("NULL")){
-            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/")+1);
+        if (!testCasePath.equals("NULL")) {
+            String fileName = testCasePath.substring(testCasePath.lastIndexOf("/") + 1);
             ChangedFile bfcFile = new ChangedFile();
             bfcFile.setFilename(fileName);
             bfcFile.setNewPath(testCasePath);
@@ -189,9 +194,9 @@ public class RegressionServiceImpl implements RegressionService {
             bicFile.setType(ChangedFile.Type.TEST_SUITE);
             bicFiles.add(bicFile);
         }
-        regressionDetail.setBfcURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBfcURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBfc()));
-        regressionDetail.setBicURL(String.join("/",GITHUB_URL,regression.getProjectFullName(),COMMIT,
+        regressionDetail.setBicURL(String.join("/", GITHUB_URL, regression.getProjectFullName(), COMMIT,
                 regression.getBic()));
         regressionDetail.setRegressionUuid(regressionUuid);
         regressionDetail.setProjectFullName(regression.getProjectFullName());
@@ -298,7 +303,7 @@ public class RegressionServiceImpl implements RegressionService {
         migrator.migrateTestAndDependency(rfc, targetCodeVersions, regression.getTestcase());
     }
 
-    public void checkoutCommitCode(Regression regression, File projectFile,String bic,String userToken) {
+    public void checkoutCommitCode(Regression regression, File projectFile, String bic, String userToken) {
 
         List<Revision> targetCodeVersions = new ArrayList<>(4);
         Revision rfc = new Revision("bfc", regression.getBfc());
@@ -344,6 +349,90 @@ public class RegressionServiceImpl implements RegressionService {
     @Override
     public String readRuntimeResult(String filaPath) throws IOException {
         return FileUtils.readFileToString(new File(filaPath), "UTF-8");
+    }
+
+    @Override
+    public void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO) {
+        criticalChangeMapper.setHunks(regressionUuid, revisionName, hunkEntityDTO.getNewPath(), hunkEntityDTO.getOldPath(),
+                hunkEntityDTO.getBeginA(), hunkEntityDTO.getBeginB(), hunkEntityDTO.getEndA(), hunkEntityDTO.getEndB(), hunkEntityDTO.getType());
+    }
+
+    @Override
+    public CriticalChange getCriticalChange(String regressionUuid, String revisionName) {
+        CriticalChange criticalChange = new CriticalChange();
+        List<HunkEntity> hunks = criticalChangeMapper.getHunks(regressionUuid, revisionName);
+        criticalChange.setRevisionName(revisionName);
+        criticalChange.setHunkEntityList(hunks);
+        return criticalChange;
+    }
+
+    @Override
+    public void deleteCriticalChange(String regressionUuid, String revisionName) {
+        criticalChangeMapper.deletHunks(regressionUuid, revisionName);
+    }
+
+    @Override
+    public String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList) throws IOException {
+        //默认hunk来自同一file，并写入同一file
+        String insertPath = hunkList.get(0).getNewPath();
+        File insertFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, newRevision, insertPath);
+        sourceCodeManager.backupFile(insertFile);
+
+        for (HunkEntity hunkEntity : hunkList) {
+            //获取old path中的hunk代码
+            String hunkPath = hunkEntity.getOldPath();
+            String fileName = hunkPath.substring(hunkPath.lastIndexOf("/") + 1);
+            File hunkFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, oldRevision, hunkPath);
+//            String hunkCode = sourceCodeManager.getRevisionCode(hunkFile);
+            HashMap<Integer, String> codeMap = new HashMap<>();
+            //获取beginA到endA的每一行代码
+            for (int i = hunkEntity.getBeginA(); i <= hunkEntity.getEndA(); i++) {
+                String code = sourceCodeManager.getLineCode(fileName, i);
+                codeMap.put(i, code);
+            }
+
+            //apply该hunk的代码到备份后的新文件beginB到endB
+
+        }
+
+        return null;
+    }
+
+    @Override
+    public void modifiedCode(String userToken, String regressionUuid, String oldPath, String revisionName, String newCode, Integer coverStatus) throws IOException {
+        HashMap<String, String> revisionMap = new HashMap<>();
+        revisionMap.put("bfc", "buggy");
+        revisionMap.put("bic", "work");
+        String revisionFlag = revisionMap.get(revisionName);
+
+        //backup
+        String backupPath = "";
+        Boolean isBackup = false;
+
+        File oldFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, revisionFlag, oldPath);
+        File parentFile = new File(oldFile.getParent());
+        File[] fileList = parentFile.listFiles();
+        for (File file : fileList) {
+            if (file.getPath().endsWith(".b")) {
+                backupPath = file.getAbsolutePath();
+                isBackup = true;
+            }
+        }
+        //status为0，不做修改，删除当前文件，恢复后缀为.b的文件
+        if (coverStatus == 0) {
+            FileUtil.DeleteFileByPath(oldFile.getPath());
+            sourceCodeManager.recoverFile(backupPath);
+        } else {
+            //status为1，没有备份文件，则备份文件且将new code写入源文件
+            if (!isBackup) {
+                //back up
+                sourceCodeManager.backupFile(oldFile);
+                FileUtil.writeInFile(oldFile.getPath(), newCode);
+            } else {
+                //有备份文件，直接将new code覆盖到源文件中
+                FileUtil.writeInFile(oldPath, newCode);
+            }
+        }
     }
 
     @Autowired

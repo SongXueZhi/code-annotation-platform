@@ -1,14 +1,12 @@
 package com.fudan.annotation.platform.backend.controller;
 
-import com.fudan.annotation.platform.backend.entity.CodeDetails;
-import com.fudan.annotation.platform.backend.entity.RegressionDetail;
-import com.fudan.annotation.platform.backend.entity.Regression;
+import com.fudan.annotation.platform.backend.entity.*;
 import com.fudan.annotation.platform.backend.service.RegressionService;
 import com.fudan.annotation.platform.backend.vo.ResponseBean;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.List;
@@ -96,7 +94,7 @@ public class RegressionController {
             @RequestParam(name = "regression_uuid") String regressionUuid,
             @RequestParam String userToken) {
         try {
-            RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid,userToken);
+            RegressionDetail changedFiles = regressionService.getChangedFiles(regressionUuid, userToken);
             return new ResponseBean<>(200, "get regression info success", changedFiles);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
@@ -109,7 +107,7 @@ public class RegressionController {
             @RequestParam(name = "bic") String bic,
             @RequestParam String userToken) {
         try {
-            RegressionDetail changedFiles = regressionService.getMigrateInfo(regressionUuid,bic,userToken);
+            RegressionDetail changedFiles = regressionService.getMigrateInfo(regressionUuid, bic, userToken);
             return new ResponseBean<>(200, "get regression info success", changedFiles);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get failed :" + e.getMessage(), null);
@@ -149,7 +147,7 @@ public class RegressionController {
     public ResponseBean<String> getConsoleResult(
             @RequestParam(name = "path") String path) {
         try {
-            String revisionRunResult = regressionService.readRuntimeResult(URLDecoder.decode(path,"UTF-8"));
+            String revisionRunResult = regressionService.readRuntimeResult(URLDecoder.decode(path, "UTF-8"));
             return new ResponseBean<>(200, "get result success", revisionRunResult);
         } catch (Exception e) {
             return new ResponseBean<>(401, "get result failed :" + e.getMessage(), null);
@@ -164,10 +162,78 @@ public class RegressionController {
             @RequestParam String revisionFlag) {
         try {
             String logPath = regressionService.runTest(regressionUuid, userToken, revisionFlag);
-            logPath = URLEncoder.encode(logPath,"UTF-8");
+            logPath = URLEncoder.encode(logPath, "UTF-8");
             return new ResponseBean<>(200, "test success", logPath);
         } catch (Exception e) {
             return new ResponseBean<>(401, "test failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PutMapping(value = "/criticalChange")
+    public ResponseBean setCriticalChange(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "revision_name") String revisionName,
+            @RequestBody HunkEntity hunkEntityDTO) {
+        try {
+            regressionService.setCriticalChange(regressionUuid, revisionName, hunkEntityDTO);
+            return new ResponseBean<>(200, "record critical change success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "record critical change failed :" + e.getMessage(), null);
+        }
+    }
+
+    @GetMapping(value = "/criticalChange")
+    public ResponseBean<CriticalChange> getCriticalChange(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "revision_name") String revisionName) {
+        try {
+            CriticalChange criticalChange = regressionService.getCriticalChange(regressionUuid, revisionName);
+            return new ResponseBean<>(200, "get critical change success", criticalChange);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "get critical change failed :" + e.getMessage(), null);
+        }
+    }
+
+    @DeleteMapping(value = "/criticalChange")
+    public ResponseBean deleteCriticalChange(
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "revision_name") String revisionName) {
+        try {
+            regressionService.deleteCriticalChange(regressionUuid, revisionName);
+            return new ResponseBean<>(200, "get critical change success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "get critical change failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PutMapping(value = "/hunk")
+    public ResponseBean<String> applyHunks(
+            @RequestParam String userToken,
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "old_revision") String oldRevision,
+            @RequestParam(name = "new_revision") String newRevision,
+            @RequestBody List<HunkEntity> hunkList) {
+        try {
+            String code = regressionService.applyHunks(userToken, regressionUuid, oldRevision, newRevision, hunkList);
+            return new ResponseBean<>(200, "apply hunks success", code);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "apply hunks failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PostMapping(value = "/modified")
+    public ResponseBean modifiedCode(
+            @RequestParam String userToken,
+            @RequestParam(name = "regression_uuid") String regressionUuid,
+            @RequestParam(name = "old_path") String oldPath,
+            @RequestParam(name = "revision_name") String revisionName,
+            @RequestBody String newCode,
+            @RequestParam(name = "cover_status") Integer coverStatus) {
+        try {
+            regressionService.modifiedCode(userToken, regressionUuid, oldPath, revisionName, newCode, coverStatus);
+            return new ResponseBean<>(200, "modified code success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "modified code failed :" + e.getMessage(), null);
         }
     }
 

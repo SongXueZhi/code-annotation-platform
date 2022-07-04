@@ -1,8 +1,7 @@
 package com.fudan.annotation.platform.backend.service;
 
-import com.fudan.annotation.platform.backend.entity.CodeDetails;
-import com.fudan.annotation.platform.backend.entity.RegressionDetail;
-import com.fudan.annotation.platform.backend.entity.Regression;
+import com.fudan.annotation.platform.backend.entity.*;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
@@ -57,7 +56,8 @@ public interface RegressionService {
      */
     RegressionDetail getChangedFiles(String regressionUuid, String userToken) throws Exception;
 
-    RegressionDetail getMigrateInfo(String regressionUuid,String bic, String userToken) throws Exception;
+    RegressionDetail getMigrateInfo(String regressionUuid, String bic, String userToken) throws Exception;
+
     /**
      * description checkout
      *
@@ -81,4 +81,52 @@ public interface RegressionService {
     String runTest(String regressionUuid, String userToken, String revisionFlag);
 
     String readRuntimeResult(String filaPath) throws IOException;
+
+    /**
+     * description set critical change hunk
+     *
+     * @param regressionUuid regressionUuid
+     * @param revisionName   revision name
+     * @param hunkEntityDTO  single hunk patch
+     */
+    void setCriticalChange(String regressionUuid, String revisionName, HunkEntity hunkEntityDTO);
+
+    /**
+     * description get critical change hunk
+     *
+     * @param regressionUuid regressionUuid
+     * @param revisionName   revision name
+     */
+    CriticalChange getCriticalChange(String regressionUuid, String revisionName);
+
+    /**
+     * description delete critical change hunk
+     *
+     * @param regressionUuid regressionUuid
+     * @param revisionName   revision name
+     */
+    void deleteCriticalChange(String regressionUuid, String revisionName);
+
+    /**
+     * apply hunks to special file and return the code
+     *
+     * @param userToken      usertoken
+     * @param regressionUuid regressionUuid
+     * @param oldRevision    old revision name
+     * @param newRevision    new revision name
+     * @param hunkList       hunks need to apply
+     */
+    String applyHunks(String userToken, String regressionUuid, String oldRevision, String newRevision, List<HunkEntity> hunkList) throws IOException;
+
+    /**
+     * modified a file with new code
+     *
+     * @param userToken      usertoken
+     * @param regressionUuid regressionUuid
+     * @param oldPath        old revision path
+     * @param revisionName   old revision name(bic->work, bfc->buggy)
+     * @param newCode        updated code
+     * @param coverStatus    modified or not(0-adopt old code 1-adopt new code)
+     */
+    void modifiedCode(String userToken, String regressionUuid, String oldPath, String revisionName, String newCode, Integer coverStatus) throws IOException;
 }
