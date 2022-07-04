@@ -23,8 +23,8 @@ import java.nio.file.Paths;
  **/
 @Component
 public class SourceCodeManager {
-    @Value("${richy.workSpace}")
-    private static String workSpace = "E:\\reg\\regminerTool\\test-transfer-space";
+
+    private final static String workSpace = System.getProperty("user.home") + File.separator + "miner_space";
 
     public static String metaProjectsDirPath = workSpace + File.separator + "meta_projects";
     public static String cacheProjectsDirPath = workSpace + File.separator + "transfer_cache";
