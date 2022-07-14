@@ -367,8 +367,9 @@ public class RegressionServiceImpl implements RegressionService {
     }
 
     @Override
-    public void deleteCriticalChange(String regressionUuid, String revisionName) {
-        criticalChangeMapper.deletHunks(regressionUuid, revisionName);
+    public List<HunkEntity> deleteCriticalChange(String regressionUuid, String revisionName, Integer criticalChangeId) {
+        criticalChangeMapper.deletHunks(regressionUuid, revisionName, criticalChangeId);
+        return criticalChangeMapper.getHunks(regressionUuid, revisionName);
     }
 
     @Override
