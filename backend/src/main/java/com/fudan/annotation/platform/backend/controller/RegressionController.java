@@ -195,14 +195,15 @@ public class RegressionController {
     }
 
     @DeleteMapping(value = "/criticalChange")
-    public ResponseBean deleteCriticalChange(
+    public ResponseBean<List<HunkEntity>> deleteCriticalChange(
             @RequestParam(name = "regression_uuid") String regressionUuid,
-            @RequestParam(name = "revision_name") String revisionName) {
+            @RequestParam(name = "revision_name") String revisionName,
+            @RequestParam(name = "critical_change_id") Integer criticalChangeId) {
         try {
-            regressionService.deleteCriticalChange(regressionUuid, revisionName);
-            return new ResponseBean<>(200, "get critical change success", null);
+            List<HunkEntity> hunks = regressionService.deleteCriticalChange(regressionUuid, revisionName, criticalChangeId);
+            return new ResponseBean<>(200, "delete critical change success", hunks);
         } catch (Exception e) {
-            return new ResponseBean<>(401, "get critical change failed :" + e.getMessage(), null);
+            return new ResponseBean<>(401, "delete critical change failed :" + e.getMessage(), null);
         }
     }
 
@@ -236,6 +237,57 @@ public class RegressionController {
             return new ResponseBean<>(401, "modified code failed :" + e.getMessage(), null);
         }
     }
+
+    @PostMapping(value = "/update")
+    public ResponseBean updateCode(
+            @RequestParam String userToken,
+            @RequestBody String code,
+            @RequestParam(name = "projectFullName") String projectName,
+            @RequestParam(name = "regressionUuid") String regressionUuid,
+            @RequestParam(name = "revisionName") String revisionName,
+            @RequestParam(name = "filePath") String filePath) {
+        try {
+            regressionService.updateCode(userToken, code, projectName, regressionUuid,  revisionName, filePath );
+            return new ResponseBean<>(200, "update code success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "update code failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PostMapping(value = "/revert")
+    public ResponseBean revertCode(
+            @RequestParam String userToken,
+            @RequestParam(name = "projectFullName") String projectName,
+            @RequestParam(name = "regressionUuid") String regressionUuid,
+            @RequestParam(name = "revisionName") String revisionName,
+            @RequestParam(name = "filePath") String filePath) {
+        try {
+            regressionService.revertCode(userToken, projectName, regressionUuid,  revisionName, filePath );
+            return new ResponseBean<>(200, "revert code success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "revert code failed :" + e.getMessage(), null);
+        }
+    }
+    /**
+     * 接口3 clearCache （前端在后端接口完成后，刷新界面）
+     参数：{projectName，userid，regressionid}
+     delete file({projectName，userid，regressionid，revisionName，filePath})
+     */
+
+     @PostMapping(value = "/clearCache")
+    public ResponseBean clearCache(
+            @RequestParam String userToken,
+            @RequestParam(name = "projectFullName") String projectName,
+            @RequestParam(name = "regressionUuid") String regressionUuid){
+        try {
+            regressionService.clearCache(userToken, projectName, regressionUuid );
+            return new ResponseBean<>(200, "clear cache success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "clear cache failed :" + e.getMessage(), null);
+        }
+
+    }
+
 
     @Autowired
     public void setRegressionService(RegressionService regressionService) {

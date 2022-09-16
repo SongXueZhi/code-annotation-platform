@@ -105,7 +105,7 @@ public interface RegressionService {
      * @param regressionUuid regressionUuid
      * @param revisionName   revision name
      */
-    void deleteCriticalChange(String regressionUuid, String revisionName);
+    List<HunkEntity> deleteCriticalChange(String regressionUuid, String revisionName,Integer criticalChangeId);
 
     /**
      * apply hunks to special file and return the code
@@ -129,4 +129,37 @@ public interface RegressionService {
      * @param coverStatus    modified or not(0-adopt old code 1-adopt new code)
      */
     void modifiedCode(String userToken, String regressionUuid, String oldPath, String revisionName, String newCode, Integer coverStatus) throws IOException;
+
+    /**
+     * update a file with new code
+     *
+     * @param userToken      usertoken
+     * @param code           updated code
+     * @param projectName    project name
+     * @param regressionUuid regressionUuid
+     * @param revisionName   old revision name(bic->work, bfc->buggy)
+     * @param filePath       file path
+     */
+    void updateCode(String userToken, String code, String projectName, String regressionUuid, String revisionName, String filePath) throws IOException;
+
+    /**
+     * revert a file to old code
+     *
+     * @param userToken      usertoken
+     * @param projectName    project name
+     * @param regressionUuid regressionUuid
+     * @param revisionName   old revision name(bic->work, bfc->buggy)
+     * @param filePath       file path
+     */
+    void revertCode(String userToken, String projectName, String regressionUuid, String revisionName, String filePath) throws IOException;
+
+    /**
+     * clear cache by regression
+     *
+     * @param userToken      usertoken
+     * @param projectName    project name
+     * @param regressionUuid regressionUuid
+     */
+    void clearCache(String userToken, String projectName, String regressionUuid) throws IOException;
+
 }

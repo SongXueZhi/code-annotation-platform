@@ -83,6 +83,10 @@ public class SourceCodeManager {
 
     }
 
+    public File getRegressionDir(String regressionUuid, String userToken){
+        return new File(cacheProjectsDirPath + File.separator + userToken + File.separator + regressionUuid);
+    }
+
     public File getRevisionDir(String regressionUuid, String userToken, String revisionFlag) {
         return new File(cacheProjectsDirPath + File.separator + userToken + File.separator +
                 regressionUuid + File.separator + revisionFlag);
