@@ -238,6 +238,57 @@ public class RegressionController {
         }
     }
 
+    @PostMapping(value = "/update")
+    public ResponseBean updateCode(
+            @RequestParam String userToken,
+            @RequestBody String code,
+            @RequestParam(name = "projectFullName") String projectName,
+            @RequestParam(name = "regressionUuid") String regressionUuid,
+            @RequestParam(name = "revisionName") String revisionName,
+            @RequestParam(name = "filePath") String filePath) {
+        try {
+            regressionService.updateCode(userToken, code, projectName, regressionUuid,  revisionName, filePath );
+            return new ResponseBean<>(200, "update code success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "update code failed :" + e.getMessage(), null);
+        }
+    }
+
+    @PostMapping(value = "/revert")
+    public ResponseBean revertCode(
+            @RequestParam String userToken,
+            @RequestParam(name = "projectFullName") String projectName,
+            @RequestParam(name = "regressionUuid") String regressionUuid,
+            @RequestParam(name = "revisionName") String revisionName,
+            @RequestParam(name = "filePath") String filePath) {
+        try {
+            regressionService.revertCode(userToken, projectName, regressionUuid,  revisionName, filePath );
+            return new ResponseBean<>(200, "revert code success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "revert code failed :" + e.getMessage(), null);
+        }
+    }
+    /**
+     * 接口3 clearCache （前端在后端接口完成后，刷新界面）
+     参数：{projectName，userid，regressionid}
+     delete file({projectName，userid，regressionid，revisionName，filePath})
+     */
+
+     @PostMapping(value = "/clearCache")
+    public ResponseBean clearCache(
+            @RequestParam String userToken,
+            @RequestParam(name = "projectFullName") String projectName,
+            @RequestParam(name = "regressionUuid") String regressionUuid){
+        try {
+            regressionService.clearCache(userToken, projectName, regressionUuid );
+            return new ResponseBean<>(200, "clear cache success", null);
+        } catch (Exception e) {
+            return new ResponseBean<>(401, "clear cache failed :" + e.getMessage(), null);
+        }
+
+    }
+
+
     @Autowired
     public void setRegressionService(RegressionService regressionService) {
         this.regressionService = regressionService;
