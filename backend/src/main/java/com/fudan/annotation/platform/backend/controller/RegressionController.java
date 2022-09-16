@@ -195,14 +195,15 @@ public class RegressionController {
     }
 
     @DeleteMapping(value = "/criticalChange")
-    public ResponseBean deleteCriticalChange(
+    public ResponseBean<List<HunkEntity>> deleteCriticalChange(
             @RequestParam(name = "regression_uuid") String regressionUuid,
-            @RequestParam(name = "revision_name") String revisionName) {
+            @RequestParam(name = "revision_name") String revisionName,
+            @RequestParam(name = "critical_change_id") Integer criticalChangeId) {
         try {
-            regressionService.deleteCriticalChange(regressionUuid, revisionName);
-            return new ResponseBean<>(200, "get critical change success", null);
+            List<HunkEntity> hunks = regressionService.deleteCriticalChange(regressionUuid, revisionName, criticalChangeId);
+            return new ResponseBean<>(200, "delete critical change success", hunks);
         } catch (Exception e) {
-            return new ResponseBean<>(401, "get critical change failed :" + e.getMessage(), null);
+            return new ResponseBean<>(401, "delete critical change failed :" + e.getMessage(), null);
         }
     }
 

@@ -105,7 +105,7 @@ public interface RegressionService {
      * @param regressionUuid regressionUuid
      * @param revisionName   revision name
      */
-    void deleteCriticalChange(String regressionUuid, String revisionName);
+    List<HunkEntity> deleteCriticalChange(String regressionUuid, String revisionName,Integer criticalChangeId);
 
     /**
      * apply hunks to special file and return the code
