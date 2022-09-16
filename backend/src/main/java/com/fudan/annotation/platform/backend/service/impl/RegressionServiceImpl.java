@@ -435,6 +435,55 @@ public class RegressionServiceImpl implements RegressionService {
         }
     }
 
+
+    public void updateCode(String userToken, String code, String projectName, String regressionUuid, String revisionName, String filePath) throws IOException{
+//        HashMap<String, String> revisionMap = new HashMap<>();
+//        revisionMap.put("bfc", "buggy");
+//        revisionMap.put("bic", "work");
+//        String revisionFlag = revisionMap.get(revisionName);
+
+        File file = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, revisionName, filePath);
+        File backupFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, revisionName, filePath  + ".back");
+        if(backupFile.exists()){
+            //有备份文件，直接更新
+            FileUtil.writeInFile(file.getPath(), code);
+        }else {
+            //没有备份文件，将文件备份后更新
+            FileUtil.copyFileStream(file, backupFile);
+            FileUtil.writeInFile(file.getPath(), code);
+        }
+    }
+
+    public void revertCode(String userToken, String projectName, String regressionUuid, String revisionName, String filePath) throws IOException{
+
+//        HashMap<String, String> revisionMap = new HashMap<>();
+//        revisionMap.put("bfc", "buggy");
+//        revisionMap.put("bic", "work");
+//        String revisionFlag = revisionMap.get(revisionName);
+
+        File file = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, revisionName, filePath);
+        File backupFile = sourceCodeManager.getCacheProjectDir(userToken, regressionUuid, revisionName, filePath  + ".back");
+        if(backupFile.exists()){
+            //有备份文件，将备份文件作为源文件
+            FileUtil.DeleteFileByPath(file.getPath());
+            FileUtil.copyFileStream(backupFile, file);
+        }else {
+            //没有备份文件，报错
+            throw new IOException("No backup file");
+        }
+    }
+
+    public void clearCache(String userToken, String projectName, String regressionUuid) throws IOException{
+//        String[] revison = {"work", "bic", "buggy", "bfc"};
+//        for (String revisionFlag:  revison) {
+//            File file = sourceCodeManager.getRevisionDir(regressionUuid, userToken, revisionFlag);
+//            FileUtils.deleteDirectory(file);
+//        }
+        File file = sourceCodeManager.getRegressionDir(regressionUuid, userToken);
+        FileUtils.deleteDirectory(file);
+    }
+
+
     @Autowired
     public void setRegressionMapper(RegressionMapper regressionMapper) {
         this.regressionMapper = regressionMapper;
